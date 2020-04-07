@@ -5,7 +5,12 @@ spring:
   mvc:
     servlet:
       path: /cykb-es
-
+  elasticsearch:
+    jest:
+      uris: http://192.168.0.105:9300
+      connection-timeout: 30000
+      multi-threaded: true
+      read-timeout: 7200
 logging:
   level:
     # 全局等级
