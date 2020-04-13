@@ -1,5 +1,5 @@
 server:
-  port: 8018
+  port: 8020
 
 spring:
   mvc:
@@ -7,13 +7,13 @@ spring:
       path: /cykb-es
   elasticsearch:
     jest:
-      uris: http://192.168.0.105:9300
+      uris: http://127.0.0.1:29200
       connection-timeout: 30000
       multi-threaded: true
       read-timeout: 7200
+
 logging:
   level:
-    # 全局等级
     root: warn
     com: info
   file:
