@@ -12,20 +12,19 @@ import lombok.*;
 @Data
 public class ElasticSearch {
 
+    @NonNull
     private String index;
 
+    @NonNull
     private String type;
 
-    private Integer from;
+    @Builder.Default
+    private Integer from = 0;
 
-    private Integer size;
+    @Builder.Default
+    private Integer size = 10;
 
     private String sort;
 
     private String order;
-
-    public ElasticSearch() {
-        this.from = 0;
-        this.size = 10;
-    }
 }

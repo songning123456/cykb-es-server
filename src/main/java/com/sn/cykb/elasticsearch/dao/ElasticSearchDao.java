@@ -43,7 +43,7 @@ public class ElasticSearchDao {
      * @throws Exception
      */
     public <T> void save(ElasticSearch elasticSearch, T entity) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType()) || entity == null) {
+        if (entity == null) {
             throw new Exception("elasticSearch-save 参数异常");
         }
         Index action = new Index.Builder(entity).index(elasticSearch.getIndex()).type(elasticSearch.getType()).build();
@@ -62,7 +62,7 @@ public class ElasticSearchDao {
      * @throws Exception
      */
     public <T> void bulk(ElasticSearch elasticSearch, List<T> list) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType()) || list == null || list.isEmpty()) {
+        if (list == null || list.isEmpty()) {
             throw new Exception("elasticSearch-bulk 参数异常");
         }
         List<Index> actionList = new ArrayList<>();
@@ -84,7 +84,7 @@ public class ElasticSearchDao {
      * @throws Exception
      */
     public <T> void update(ElasticSearch elasticSearch, String esId, T entity) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType()) || StringUtils.isEmpty(esId) || entity == null) {
+        if (StringUtils.isEmpty(esId) || entity == null) {
             throw new Exception("elasticSearch-update 参数异常");
         }
         Index index = new Index.Builder(entity).index(elasticSearch.getIndex()).type(elasticSearch.getType()).id(esId).build();
@@ -96,15 +96,16 @@ public class ElasticSearchDao {
 
     /**
      * select * from type where esId = :value
-     *
-     * @param index
-     * @param type
+     * @param elasticSearch
      * @param esId
      * @return
      * @throws Exception
      */
-    public Object findById(String index, String type, String esId) throws Exception {
-        Get get = new Get.Builder(index, esId).type(type).build();
+    public Object findById(ElasticSearch elasticSearch, String esId) throws Exception {
+        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType()) || StringUtils.isEmpty(esId)) {
+            throw new Exception("elasticSearch-findById 参数异常");
+        }
+        Get get = new Get.Builder(elasticSearch.getIndex(), esId).type(elasticSearch.getType()).build();
         JestResult result = jestClient.execute(get);
         return result.getSourceAsObject(Object.class);
     }
@@ -117,9 +118,6 @@ public class ElasticSearchDao {
      * @throws Exception
      */
     public void mustTermsDelete(ElasticSearch elasticSearch, Map<String, String[]> termsParams) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType())) {
-            throw new Exception("elasticSearch-mustTermsDelete 参数异常");
-        }
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (termsParams != null) {
             BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -144,9 +142,6 @@ public class ElasticSearchDao {
      * @throws Exception
      */
     public List<SearchResult.Hit<Object, Void>> mustTermRangeQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, List<Range> rangeList) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType())) {
-            throw new Exception("elasticSearch-mustTermRangeQuery 参数异常");
-        }
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         if (termParams != null && !termParams.isEmpty()) {
@@ -175,9 +170,9 @@ public class ElasticSearchDao {
         }
         searchSourceBuilder.query(boolQueryBuilder);
         searchSourceBuilder.from(elasticSearch.getFrom()).size(elasticSearch.getSize());
-        if (StringUtils.isEmpty(elasticSearch.getOrder()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
+        if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.ASC);
-        } else if (StringUtils.isEmpty(elasticSearch.getOrder()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
+        } else if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.DESC);
         }
         String query = searchSourceBuilder.toString();
@@ -195,9 +190,6 @@ public class ElasticSearchDao {
      * @throws Exception
      */
     public List<SearchResult.Hit<Object, Void>> mustTermsRangeQuery(ElasticSearch elasticSearch, Map<String, String[]> termsParams, List<Range> rangeList) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType())) {
-            throw new Exception("elasticSearch-mustTermsRangeQuery 参数异常");
-        }
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         if (termsParams != null && !termsParams.isEmpty()) {
@@ -207,7 +199,7 @@ public class ElasticSearchDao {
         }
         if (rangeList != null && !rangeList.isEmpty()) {
             for (Range range : rangeList) {
-                if (StringUtils.isEmpty(range.getRangeName()) && (!StringUtils.isEmpty(range.getMin()) || !StringUtils.isEmpty(range.getMax()))) {
+                if (!StringUtils.isEmpty(range.getMin()) || !StringUtils.isEmpty(range.getMax())) {
                     continue;
                 }
                 RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(range.getRangeName());
@@ -226,9 +218,9 @@ public class ElasticSearchDao {
         }
         searchSourceBuilder.query(boolQueryBuilder);
         searchSourceBuilder.from(elasticSearch.getFrom()).size(elasticSearch.getSize());
-        if (StringUtils.isEmpty(elasticSearch.getOrder()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
+        if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.ASC);
-        } else if (StringUtils.isEmpty(elasticSearch.getOrder()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
+        } else if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.DESC);
         }
         String query = searchSourceBuilder.toString();
@@ -246,9 +238,6 @@ public class ElasticSearchDao {
      * @throws Exception
      */
     public List<SearchResult.Hit<Object, Void>> shouldWildCardQuery(ElasticSearch elasticSearch, Map<String, Object> wildCardParams, List<Range> rangeList) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType())) {
-            throw new Exception("elasticSearch-shouldWildCardQuery 参数异常");
-        }
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         if (wildCardParams != null && !wildCardParams.isEmpty()) {
@@ -260,7 +249,7 @@ public class ElasticSearchDao {
         }
         if (rangeList != null && !rangeList.isEmpty()) {
             for (Range range : rangeList) {
-                if (StringUtils.isEmpty(range.getRangeName()) && (!StringUtils.isEmpty(range.getMin()) || !StringUtils.isEmpty(range.getMax()))) {
+                if (!StringUtils.isEmpty(range.getMin()) || !StringUtils.isEmpty(range.getMax())) {
                     continue;
                 }
                 RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(range.getRangeName());
@@ -279,9 +268,9 @@ public class ElasticSearchDao {
         }
         searchSourceBuilder.query(boolQueryBuilder);
         searchSourceBuilder.from(elasticSearch.getFrom()).size(elasticSearch.getSize());
-        if (StringUtils.isEmpty(elasticSearch.getOrder()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
+        if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.ASC);
-        } else if (StringUtils.isEmpty(elasticSearch.getOrder()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
+        } else if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.DESC);
         }
         Search search = new Search.Builder(searchSourceBuilder.toString()).addIndex(elasticSearch.getIndex()).addType(elasticSearch.getType()).build();
@@ -290,9 +279,6 @@ public class ElasticSearchDao {
     }
 
     public List<TermsAggregation.Entry> aggregationTermQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, String aggField) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType())) {
-            throw new Exception("elasticSearch-aggregationTermQuery 参数异常");
-        }
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (termParams != null && !termParams.isEmpty()) {
             BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -309,9 +295,6 @@ public class ElasticSearchDao {
     }
 
     public List<TermsAggregation.Entry> aggregationSubTermQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, String aggField, String subAggField) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType())) {
-            throw new Exception("elasticSearch-aggregationSubTermQuery 参数异常");
-        }
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (termParams != null && !termParams.isEmpty()) {
             BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -329,9 +312,6 @@ public class ElasticSearchDao {
     }
 
     public List<TermsAggregation.Entry> aggregationTermCountQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, String aggField) throws Exception {
-        if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType())) {
-            throw new Exception("elasticSearch-aggregationSubCountQuery 参数异常");
-        }
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (termParams != null && !termParams.isEmpty()) {
             BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();

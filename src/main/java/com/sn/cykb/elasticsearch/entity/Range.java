@@ -13,6 +13,7 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Range {
 
+    @NonNull
     private String rangeName;
 
     private String gtOrGte;

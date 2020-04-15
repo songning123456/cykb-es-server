@@ -1,8 +1,10 @@
 package com.sn.cykb;
 
+import com.sn.cykb.elasticsearch.dao.ElasticSearchDao;
+import com.sn.cykb.elasticsearch.entity.ElasticSearch;
 import com.sn.cykb.entity.Users;
 import com.sn.cykb.util.DateUtil;
-import io.searchbox.core.SearchResult;
+import org.apache.catalina.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,54 +21,79 @@ public class CykbEsServerApplicationTests {
     private ElasticSearchDao elasticSearchDao;
 
     @Test
-    public void testSave() {
+    public void test1() {
         try {
             List<Users> usersList = this.generateUsersList();
-            elasticSearchDao.bulk("users_index", "users", usersList);
-            Users users = this.generateUsers();
-            elasticSearchDao.save("users_index", "users", users);
-            System.out.println("");
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").build();
+            elasticSearchDao.bulk(elasticSearch, usersList);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Test
-    public void testQuery() {
+    public void test2() {
         try {
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termQuery("users_index", "users", 0, 30, "updateTime", false, "avatar", "http://");
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termsQuery("users_index", "users", 0, 30, "_id", new String[]{"QRlBcnEBj8NokppASryb", "RBlBcnEBj8NokppASryb"}, "updateTime", false);
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termQuery("users_index", "users", 0, 30, "updateTime", false);
-            Map<String, Object> params = new HashMap<>();
-            params.put("avatar", "http://");
-            params.put("nickName", "测试人员0");
-//            params.put("updateTime", "2020-04-13 15:52:24");
-            Map<String, Object> range = new HashMap<>();
-            // range.put("gt", "2020-04-13 14:31:57");
-            range.put("lt", "2020-04-13 14:55:29");
-            Map<String, Object> wildParams = new HashMap<>();
-            wildParams.put("nickName", "0");
-            wildParams.put("uniqueId", "2190");
-            Map<String, Object> delParams = new HashMap<>();
-            Map<String, String[]> delsParams = new HashMap<>();
-            delParams.put("nickName", "测试人员1");
-            delsParams.put("updateTime", new String[]{"2020-04-13 15:03:58"});
-//            List<TermsAggregation.Entry> result = elasticSearchDao.aggregationSubCountQuery("users_index", "users", 0, 30, "nickName");
-//            elasticSearchDao.deleteByFieldNames("users_index", "users", delParams, delsParams);
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolMustShouldWildCardRangeQuery("users_index", "users", 0, 30, "updateTime", range, wildParams, "updateTime", false);
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolShouldWildCardQuery("users_index", "users", 0, 30, wildParams, "updateTime", false);
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolTermsQuery("users_index", "users", 0, 30, "update_time", false,params);
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolTermsRangeQuery("users_index", "users", 0, 30, "updateTime", false, params, "updateTime", range);
-//            Object result = elasticSearchDao.findById("users_index", "users", "ZRmGcnEBj8NokppA4bwD");
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.rangeQuery("users_index", "users", 0, 30, "updateTime", fromTo, "updateTime", false);
-//            List<TermsAggregation.Entry> result = elasticSearchDao.aggregationQuery("users_index", "users", 0, 30, "nickName", "updateTime", "2020-04-13 15:52:24");
+            Users users = this.generateUsers();
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").build();
+            elasticSearchDao.save(elasticSearch, users);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test3() {
+        try {
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").from(0).size(20).sort("updateTime").order("desc").build();
             Map<String, Object> termParams = new HashMap<>();
-            termParams.put("nickName", "测试人员2");
-            termParams.put("updateTime", "2020-04-13 15:03:58");
-            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termQuery("users_index", "users", 0, 30, termParams, "updateTime", false);
-            String id = result.get(0).id;
-            Users users = Users.builder().nickName("测试人员2").gender(0).avatar("https://").uniqueId("xxxxxxxx").updateTime("2020-04-13 15:03:59").build();
-            elasticSearchDao.updateIndexDoc("users_index", "users", id, users);
+            termParams.put("nickName", "测试人员5");
+            elasticSearchDao.mustTermRangeQuery(elasticSearch, termParams, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test4() {
+        try {
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").from(0).size(20).build();
+            Map<String, Object> termParams = new HashMap<>();
+            termParams.put("nickName", "测试人员5");
+            elasticSearchDao.mustTermRangeQuery(elasticSearch, termParams, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test5() {
+        try {
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").build();
+            elasticSearchDao.findById(elasticSearch, "bRnSfXEBj8NokppAGbzw");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    public void test6() {
+        try {
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").build();
+            Map<String, Object> termParams = new HashMap<>();
+            termParams.put("nickName", "测试人员5");
+            termParams.put("updateTime", "2020-04-15 20:30:41");
+            elasticSearchDao.mustTermRangeQuery(elasticSearch, termParams, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test29() {
+        try {
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").build();
             System.out.println("");
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,21 +101,223 @@ public class CykbEsServerApplicationTests {
     }
 
     @Test
-    public void testEs() {
+    public void test7() {
+        try {
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test8() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test9() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test10() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test28() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test11() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    public void test12() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void test13() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test14() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test15() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test16() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void test17() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test18() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    public void test19() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test20() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test21() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test22() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    @Test
+    public void test23() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test24() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test25() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void test26() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
+    public void test27() {
+        try {
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private List<Users> generateUsersList() {
         List<Users> usersList = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            Users users = Users.builder().uniqueId("1585068219" + i).avatar("http://").gender(1).nickName("测试人员" + i).updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
+        for (int i = 0; i < 9; i++) {
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            int gender = 0;
+            if (i % 2 == 0) {
+                gender = 1;
+            }
+            Users users = Users.builder().uniqueId("1585068219" + i).avatar("http://" + i).gender(gender).nickName("测试人员" + i).updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
             usersList.add(users);
         }
         return usersList;
     }
 
     private Users generateUsers() {
-        Users users = Users.builder().uniqueId("15850682195").avatar("http://").gender(1).nickName("测试人员5").updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
+        Users users = Users.builder().uniqueId("15850682199").avatar("http://9").gender(0).nickName("测试人员5").updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
         return users;
     }
 }
