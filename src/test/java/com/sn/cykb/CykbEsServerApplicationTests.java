@@ -1,10 +1,8 @@
 package com.sn.cykb;
 
-import com.sn.cykb.dao.ElasticSearchDao;
 import com.sn.cykb.entity.Users;
 import com.sn.cykb.util.DateUtil;
 import io.searchbox.core.SearchResult;
-import io.searchbox.core.search.aggregation.TermsAggregation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +71,11 @@ public class CykbEsServerApplicationTests {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void testEs() {
+
     }
 
     private List<Users> generateUsersList() {
