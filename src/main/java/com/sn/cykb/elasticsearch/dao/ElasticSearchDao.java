@@ -96,6 +96,7 @@ public class ElasticSearchDao {
 
     /**
      * select * from type where esId = :value
+     *
      * @param elasticSearch
      * @param esId
      * @return
@@ -151,7 +152,10 @@ public class ElasticSearchDao {
         }
         if (rangeList != null && !rangeList.isEmpty()) {
             for (Range range : rangeList) {
-                if (StringUtils.isEmpty(range.getRangeName()) && (!StringUtils.isEmpty(range.getMin()) || !StringUtils.isEmpty(range.getMax()))) {
+                if (StringUtils.isEmpty(range.getMin()) && StringUtils.isEmpty(range.getMax())) {
+                    continue;
+                }
+                if (StringUtils.isEmpty(range.getGtOrGte()) && StringUtils.isEmpty(range.getLtOrLte())) {
                     continue;
                 }
                 RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(range.getRangeName());
@@ -160,19 +164,19 @@ public class ElasticSearchDao {
                 } else if (!StringUtils.isEmpty(range.getMin()) && "gte".equals(range.getGtOrGte())) {
                     rangeQueryBuilder.gte(range.getMin());
                 }
-                if (!StringUtils.isEmpty(range.getMax()) && "lt".equals(range.getGtOrGte())) {
-                    rangeQueryBuilder.gt(range.getMax());
-                } else if (!StringUtils.isEmpty(range.getMax()) && "lte".equals(range.getGtOrGte())) {
-                    rangeQueryBuilder.gte(range.getMax());
+                if (!StringUtils.isEmpty(range.getMax()) && "lt".equals(range.getLtOrLte())) {
+                    rangeQueryBuilder.lt(range.getMax());
+                } else if (!StringUtils.isEmpty(range.getMax()) && "lte".equals(range.getLtOrLte())) {
+                    rangeQueryBuilder.lte(range.getMax());
                 }
                 boolQueryBuilder.must(rangeQueryBuilder);
             }
         }
         searchSourceBuilder.query(boolQueryBuilder);
         searchSourceBuilder.from(elasticSearch.getFrom()).size(elasticSearch.getSize());
-        if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
+        if (!StringUtils.isEmpty(elasticSearch.getSort()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.ASC);
-        } else if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
+        } else if (!StringUtils.isEmpty(elasticSearch.getSort()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.DESC);
         }
         String query = searchSourceBuilder.toString();
@@ -199,7 +203,10 @@ public class ElasticSearchDao {
         }
         if (rangeList != null && !rangeList.isEmpty()) {
             for (Range range : rangeList) {
-                if (!StringUtils.isEmpty(range.getMin()) || !StringUtils.isEmpty(range.getMax())) {
+                if (StringUtils.isEmpty(range.getMin()) && StringUtils.isEmpty(range.getMax())) {
+                    continue;
+                }
+                if (StringUtils.isEmpty(range.getGtOrGte()) && StringUtils.isEmpty(range.getLtOrLte())) {
                     continue;
                 }
                 RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(range.getRangeName());
@@ -208,19 +215,19 @@ public class ElasticSearchDao {
                 } else if (!StringUtils.isEmpty(range.getMin()) && "gte".equals(range.getGtOrGte())) {
                     rangeQueryBuilder.gte(range.getMin());
                 }
-                if (!StringUtils.isEmpty(range.getMax()) && "lt".equals(range.getGtOrGte())) {
-                    rangeQueryBuilder.gt(range.getMax());
-                } else if (!StringUtils.isEmpty(range.getMax()) && "lte".equals(range.getGtOrGte())) {
-                    rangeQueryBuilder.gte(range.getMax());
+                if (!StringUtils.isEmpty(range.getMax()) && "lt".equals(range.getLtOrLte())) {
+                    rangeQueryBuilder.lt(range.getMax());
+                } else if (!StringUtils.isEmpty(range.getMax()) && "lte".equals(range.getLtOrLte())) {
+                    rangeQueryBuilder.lte(range.getMax());
                 }
                 boolQueryBuilder.must(rangeQueryBuilder);
             }
         }
         searchSourceBuilder.query(boolQueryBuilder);
         searchSourceBuilder.from(elasticSearch.getFrom()).size(elasticSearch.getSize());
-        if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
+        if (!StringUtils.isEmpty(elasticSearch.getSort()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.ASC);
-        } else if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
+        } else if (!StringUtils.isEmpty(elasticSearch.getSort()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.DESC);
         }
         String query = searchSourceBuilder.toString();
@@ -237,9 +244,14 @@ public class ElasticSearchDao {
      * @return
      * @throws Exception
      */
-    public List<SearchResult.Hit<Object, Void>> shouldWildCardQuery(ElasticSearch elasticSearch, Map<String, Object> wildCardParams, List<Range> rangeList) throws Exception {
+    public List<SearchResult.Hit<Object, Void>> mustTermShouldWildCardQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, Map<String, Object> wildCardParams, List<Range> rangeList) throws Exception {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        if (termParams != null && !termParams.isEmpty()) {
+            for (Map.Entry<String, Object> item : termParams.entrySet()) {
+                boolQueryBuilder.must(QueryBuilders.termQuery(item.getKey(), item.getValue()));
+            }
+        }
         if (wildCardParams != null && !wildCardParams.isEmpty()) {
             BoolQueryBuilder innerBoolQueryBuilder = QueryBuilders.boolQuery();
             for (Map.Entry<String, Object> item : wildCardParams.entrySet()) {
@@ -249,7 +261,10 @@ public class ElasticSearchDao {
         }
         if (rangeList != null && !rangeList.isEmpty()) {
             for (Range range : rangeList) {
-                if (!StringUtils.isEmpty(range.getMin()) || !StringUtils.isEmpty(range.getMax())) {
+                if (StringUtils.isEmpty(range.getMin()) && StringUtils.isEmpty(range.getMax())) {
+                    continue;
+                }
+                if (StringUtils.isEmpty(range.getGtOrGte()) && StringUtils.isEmpty(range.getLtOrLte())) {
                     continue;
                 }
                 RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(range.getRangeName());
@@ -258,19 +273,19 @@ public class ElasticSearchDao {
                 } else if (!StringUtils.isEmpty(range.getMin()) && "gte".equals(range.getGtOrGte())) {
                     rangeQueryBuilder.gte(range.getMin());
                 }
-                if (!StringUtils.isEmpty(range.getMax()) && "lt".equals(range.getGtOrGte())) {
-                    rangeQueryBuilder.gt(range.getMax());
-                } else if (!StringUtils.isEmpty(range.getMax()) && "lte".equals(range.getGtOrGte())) {
-                    rangeQueryBuilder.gte(range.getMax());
+                if (!StringUtils.isEmpty(range.getMax()) && "lt".equals(range.getLtOrLte())) {
+                    rangeQueryBuilder.lt(range.getMax());
+                } else if (!StringUtils.isEmpty(range.getMax()) && "lte".equals(range.getLtOrLte())) {
+                    rangeQueryBuilder.lte(range.getMax());
                 }
                 boolQueryBuilder.must(rangeQueryBuilder);
             }
         }
         searchSourceBuilder.query(boolQueryBuilder);
         searchSourceBuilder.from(elasticSearch.getFrom()).size(elasticSearch.getSize());
-        if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
+        if (!StringUtils.isEmpty(elasticSearch.getSort()) && ("ASC".equals(elasticSearch.getOrder()) || "asc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.ASC);
-        } else if (!StringUtils.isEmpty(elasticSearch.getOrder()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
+        } else if (!StringUtils.isEmpty(elasticSearch.getSort()) && ("DESC".equals(elasticSearch.getOrder()) || "desc".equals(elasticSearch.getOrder()))) {
             searchSourceBuilder.sort(elasticSearch.getSort(), SortOrder.DESC);
         }
         Search search = new Search.Builder(searchSourceBuilder.toString()).addIndex(elasticSearch.getIndex()).addType(elasticSearch.getType()).build();

@@ -2,9 +2,9 @@ package com.sn.cykb;
 
 import com.sn.cykb.elasticsearch.dao.ElasticSearchDao;
 import com.sn.cykb.elasticsearch.entity.ElasticSearch;
+import com.sn.cykb.elasticsearch.entity.Range;
 import com.sn.cykb.entity.Users;
 import com.sn.cykb.util.DateUtil;
-import org.apache.catalina.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,8 +93,10 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test29() {
         try {
-            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").build();
-            System.out.println("");
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("desc").build();
+            Map<String, Object> termParams = new HashMap<>();
+            termParams.put("nickName", "测试人员5");
+            elasticSearchDao.mustTermRangeQuery(elasticSearch, termParams, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,7 +105,12 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test7() {
         try {
-
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("desc").build();
+            Map<String, Object> termParams = new HashMap<>();
+            termParams.put("nickName", "测试人员5");
+            termParams.put("avatarUrl", "http://5");
+            Range range = Range.builder().rangeName("updateTime").ltOrLte("lt").max("2020-04-15 20:30:42").build();
+            elasticSearchDao.mustTermRangeQuery(elasticSearch, termParams, Collections.singletonList(range));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -112,7 +119,9 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test8() {
         try {
-
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("desc").build();
+            Range range = Range.builder().rangeName("updateTime").ltOrLte("lt").max("2020-04-15 20:30:42").build();
+            elasticSearchDao.mustTermRangeQuery(elasticSearch, null, Collections.singletonList(range));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -121,7 +130,10 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test9() {
         try {
-
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").from(0).size(20).sort("updateTime").order("desc").build();
+            Map<String, String[]> termsParams = new HashMap<>();
+            termsParams.put("nickName", new String[]{"测试人员5", "测试人员6"});
+            elasticSearchDao.mustTermsRangeQuery(elasticSearch, termsParams, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -130,7 +142,11 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test10() {
         try {
-
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("desc").build();
+            Map<String, Object> wildCardParams = new HashMap<>();
+            wildCardParams.put("nickName", "员5");
+            wildCardParams.put("avatarUrl", "http:/");
+            elasticSearchDao.mustTermShouldWildCardQuery(elasticSearch, null, wildCardParams, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -139,7 +155,12 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test28() {
         try {
-
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("desc").build();
+            Map<String, Object> wildCardParams = new HashMap<>();
+            wildCardParams.put("nickName", "员5");
+            wildCardParams.put("avatarUrl", "http:/");
+            Range range = Range.builder().rangeName("updateTime").ltOrLte("lt").max("2020-04-15 20:36:45").build();
+            elasticSearchDao.mustTermShouldWildCardQuery(elasticSearch, null, wildCardParams, Collections.singletonList(range));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -163,6 +184,7 @@ public class CykbEsServerApplicationTests {
             e.printStackTrace();
         }
     }
+
     @Test
     public void test13() {
         try {
@@ -198,6 +220,7 @@ public class CykbEsServerApplicationTests {
             e.printStackTrace();
         }
     }
+
     @Test
     public void test17() {
         try {
@@ -289,6 +312,7 @@ public class CykbEsServerApplicationTests {
             e.printStackTrace();
         }
     }
+
     @Test
     public void test27() {
         try {
