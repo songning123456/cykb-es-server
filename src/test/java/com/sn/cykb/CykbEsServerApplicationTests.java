@@ -37,20 +37,38 @@ public class CykbEsServerApplicationTests {
     public void testQuery() {
         try {
 //            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termQuery("users_index", "users", 0, 30, "updateTime", false, "avatar", "http://");
-            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termsQuery("users_index", "users", 0, 30, "_id", new String[]{"QRlBcnEBj8NokppASryb", "RBlBcnEBj8NokppASryb"}, "updateTime", false);
+//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termsQuery("users_index", "users", 0, 30, "_id", new String[]{"QRlBcnEBj8NokppASryb", "RBlBcnEBj8NokppASryb"}, "updateTime", false);
 //            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termQuery("users_index", "users", 0, 30, "updateTime", false);
             Map<String, Object> params = new HashMap<>();
             params.put("avatar", "http://");
             params.put("nickName", "测试人员0");
 //            params.put("updateTime", "2020-04-13 15:52:24");
             Map<String, Object> range = new HashMap<>();
-            range.put("gt", "2020-04-13 14:31:57");
+            // range.put("gt", "2020-04-13 14:31:57");
             range.put("lt", "2020-04-13 14:55:29");
+            Map<String, Object> wildParams = new HashMap<>();
+            wildParams.put("nickName", "0");
+            wildParams.put("uniqueId", "2190");
+            Map<String, Object> delParams = new HashMap<>();
+            Map<String, String[]> delsParams = new HashMap<>();
+            delParams.put("nickName", "测试人员1");
+            delsParams.put("updateTime", new String[]{"2020-04-13 15:03:58"});
+//            List<TermsAggregation.Entry> result = elasticSearchDao.aggregationSubCountQuery("users_index", "users", 0, 30, "nickName");
+//            elasticSearchDao.deleteByFieldNames("users_index", "users", delParams, delsParams);
+//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolMustShouldWildCardRangeQuery("users_index", "users", 0, 30, "updateTime", range, wildParams, "updateTime", false);
+//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolShouldWildCardQuery("users_index", "users", 0, 30, wildParams, "updateTime", false);
 //            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolTermsQuery("users_index", "users", 0, 30, "update_time", false,params);
 //            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolTermsRangeQuery("users_index", "users", 0, 30, "updateTime", false, params, "updateTime", range);
 //            Object result = elasticSearchDao.findById("users_index", "users", "ZRmGcnEBj8NokppA4bwD");
 //            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.rangeQuery("users_index", "users", 0, 30, "updateTime", fromTo, "updateTime", false);
 //            List<TermsAggregation.Entry> result = elasticSearchDao.aggregationQuery("users_index", "users", 0, 30, "nickName", "updateTime", "2020-04-13 15:52:24");
+            Map<String, Object> termParams = new HashMap<>();
+            termParams.put("nickName", "测试人员2");
+            termParams.put("updateTime", "2020-04-13 15:03:58");
+            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termQuery("users_index", "users", 0, 30, termParams, "updateTime", false);
+            String id = result.get(0).id;
+            Users users = Users.builder().nickName("测试人员2").gender(0).avatar("https://").uniqueId("xxxxxxxx").updateTime("2020-04-13 15:03:59").build();
+            elasticSearchDao.updateIndexDoc("users_index", "users", id, users);
             System.out.println("");
         } catch (Exception e) {
             e.printStackTrace();
