@@ -5,6 +5,7 @@ import com.sn.cykb.elasticsearch.entity.ElasticSearch;
 import com.sn.cykb.elasticsearch.entity.Range;
 import com.sn.cykb.entity.Users;
 import com.sn.cykb.util.DateUtil;
+import io.searchbox.core.SearchResult;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,7 +170,8 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test11() {
         try {
-
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("desc").build();
+            elasticSearchDao.aggregationTermQuery(elasticSearch, null, "nickName");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -179,7 +181,10 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test12() {
         try {
-
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("desc").build();
+            Map<String, Object> termParams = new HashMap<>();
+            termParams.put("nickName", "测试人员5");
+            elasticSearchDao.aggregationTermCountOrderQuery(elasticSearch, termParams, "nickName");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -188,7 +193,14 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test13() {
         try {
-
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").build();
+            Map<String, Object> termParams = new HashMap<>();
+            termParams.put("nickName", "测试人员5");
+            termParams.put("updateTime", "2020-04-15 20:30:41");
+            List<SearchResult.Hit<Object, Void>> list = elasticSearchDao.mustTermRangeQuery(elasticSearch, termParams, null);
+            String id = list.get(0).id;
+            Users users = Users.builder().avatar("http://12").gender(1).nickName("测试人员12").uniqueId("15850682195").updateTime("2020-04-15 20:30:41").build();
+            elasticSearchDao.update(elasticSearch, id, users);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -197,7 +209,11 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test14() {
         try {
-
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").build();
+            Map<String, String[]> termsParams = new HashMap<>();
+            termsParams.put("uniqueId", new String[]{"15850682195"});
+            termsParams.put("nickName", new String[]{"测试人员12"});
+            elasticSearchDao.mustTermsDelete(elasticSearch, termsParams);
         } catch (Exception e) {
             e.printStackTrace();
         }

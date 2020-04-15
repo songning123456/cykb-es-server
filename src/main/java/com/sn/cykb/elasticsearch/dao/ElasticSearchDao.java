@@ -34,14 +34,6 @@ public class ElasticSearchDao {
     @Autowired
     private JestClient jestClient;
 
-    /**
-     * 插入单条数据
-     *
-     * @param elasticSearch
-     * @param entity
-     * @param <T>
-     * @throws Exception
-     */
     public <T> void save(ElasticSearch elasticSearch, T entity) throws Exception {
         if (entity == null) {
             throw new Exception("elasticSearch-save 参数异常");
@@ -53,14 +45,6 @@ public class ElasticSearchDao {
         }
     }
 
-    /**
-     * bulk批量插入
-     *
-     * @param elasticSearch
-     * @param list
-     * @param <T>
-     * @throws Exception
-     */
     public <T> void bulk(ElasticSearch elasticSearch, List<T> list) throws Exception {
         if (list == null || list.isEmpty()) {
             throw new Exception("elasticSearch-bulk 参数异常");
@@ -74,15 +58,6 @@ public class ElasticSearchDao {
         }
     }
 
-    /**
-     * 根据_id更新
-     *
-     * @param elasticSearch
-     * @param esId
-     * @param entity
-     * @param <T>
-     * @throws Exception
-     */
     public <T> void update(ElasticSearch elasticSearch, String esId, T entity) throws Exception {
         if (StringUtils.isEmpty(esId) || entity == null) {
             throw new Exception("elasticSearch-update 参数异常");
@@ -94,14 +69,6 @@ public class ElasticSearchDao {
         }
     }
 
-    /**
-     * select * from type where esId = :value
-     *
-     * @param elasticSearch
-     * @param esId
-     * @return
-     * @throws Exception
-     */
     public Object findById(ElasticSearch elasticSearch, String esId) throws Exception {
         if (StringUtils.isEmpty(elasticSearch.getIndex()) || StringUtils.isEmpty(elasticSearch.getType()) || StringUtils.isEmpty(esId)) {
             throw new Exception("elasticSearch-findById 参数异常");
@@ -111,13 +78,6 @@ public class ElasticSearchDao {
         return result.getSourceAsObject(Object.class);
     }
 
-    /**
-     * delete from :type where :termFieldName1 in :termFieldValues1 and :termsFieldName2 in :termsFieldValues2;
-     *
-     * @param elasticSearch
-     * @param termsParams
-     * @throws Exception
-     */
     public void mustTermsDelete(ElasticSearch elasticSearch, Map<String, String[]> termsParams) throws Exception {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (termsParams != null) {
@@ -134,14 +94,6 @@ public class ElasticSearchDao {
         }
     }
 
-    /**
-     * select * from :type where :fieldName1 = :fieldValue1 && :fieldName2 = :fieldValue2 order by :sort :order limit :from, :size;
-     *
-     * @param elasticSearch
-     * @param termParams
-     * @return
-     * @throws Exception
-     */
     public List<SearchResult.Hit<Object, Void>> mustTermRangeQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, List<Range> rangeList) throws Exception {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -185,14 +137,6 @@ public class ElasticSearchDao {
         return searchResult.getHits(Object.class);
     }
 
-    /**
-     * select * from :type where :fieldName1 in :fieldValues1 && :fieldName2 in :fieldValues2 order by :sort :order limit :from, :size;
-     *
-     * @param elasticSearch
-     * @param termsParams
-     * @return
-     * @throws Exception
-     */
     public List<SearchResult.Hit<Object, Void>> mustTermsRangeQuery(ElasticSearch elasticSearch, Map<String, String[]> termsParams, List<Range> rangeList) throws Exception {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -236,14 +180,6 @@ public class ElasticSearchDao {
         return searchResult.getHits(Object.class);
     }
 
-    /**
-     * select * from :type where :fieldName1 like concat('%', :fieldValue1, '%') or :fieldName2 like concat('%', :fieldValue2, '%') limit :from, :size;
-     *
-     * @param elasticSearch
-     * @param wildCardParams
-     * @return
-     * @throws Exception
-     */
     public List<SearchResult.Hit<Object, Void>> mustTermShouldWildCardQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, Map<String, Object> wildCardParams, List<Range> rangeList) throws Exception {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -326,7 +262,7 @@ public class ElasticSearchDao {
         return searchResult.getAggregations().getTermsAggregation(aggField + "Agg").getBuckets();
     }
 
-    public List<TermsAggregation.Entry> aggregationTermCountQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, String aggField) throws Exception {
+    public List<TermsAggregation.Entry> aggregationTermCountOrderQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, String aggField) throws Exception {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (termParams != null && !termParams.isEmpty()) {
             BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
