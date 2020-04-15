@@ -4,6 +4,7 @@ import com.sn.cykb.dao.ElasticSearchDao;
 import com.sn.cykb.entity.Users;
 import com.sn.cykb.util.DateUtil;
 import io.searchbox.core.SearchResult;
+import io.searchbox.core.search.aggregation.TermsAggregation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,13 +37,20 @@ public class CykbEsServerApplicationTests {
     public void testQuery() {
         try {
 //            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termQuery("users_index", "users", 0, 30, "updateTime", false, "avatar", "http://");
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termsQuery("users_index", "users", 0, 30, "nickName", new String[]{"测试人员0", "测试人员1"});
-//            Map<String, Object> params = new HashMap<>();
-//            params.put("avatar", "http://");
-//            params.put("nickName", "测试人员0");
+            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termsQuery("users_index", "users", 0, 30, "_id", new String[]{"QRlBcnEBj8NokppASryb", "RBlBcnEBj8NokppASryb"}, "updateTime", false);
+//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.termQuery("users_index", "users", 0, 30, "updateTime", false);
+            Map<String, Object> params = new HashMap<>();
+            params.put("avatar", "http://");
+            params.put("nickName", "测试人员0");
 //            params.put("updateTime", "2020-04-13 15:52:24");
-//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolQuery1("users_index", "users", 0, 30, params);
-            Object result = elasticSearchDao.findById("users_index", "users", "ZRmGcnEBj8NokppA4bwD");
+            Map<String, Object> range = new HashMap<>();
+            range.put("gt", "2020-04-13 14:31:57");
+            range.put("lt", "2020-04-13 14:55:29");
+//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolTermsQuery("users_index", "users", 0, 30, "update_time", false,params);
+//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.boolTermsRangeQuery("users_index", "users", 0, 30, "updateTime", false, params, "updateTime", range);
+//            Object result = elasticSearchDao.findById("users_index", "users", "ZRmGcnEBj8NokppA4bwD");
+//            List<SearchResult.Hit<Object, Void>> result = elasticSearchDao.rangeQuery("users_index", "users", 0, 30, "updateTime", fromTo, "updateTime", false);
+//            List<TermsAggregation.Entry> result = elasticSearchDao.aggregationQuery("users_index", "users", 0, 30, "nickName", "updateTime", "2020-04-13 15:52:24");
             System.out.println("");
         } catch (Exception e) {
             e.printStackTrace();
