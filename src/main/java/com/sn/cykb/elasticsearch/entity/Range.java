@@ -20,7 +20,7 @@ public class Range {
 
     private String ltOrLte;
 
-    private String min;
+    private Object min;
 
-    private String max;
+    private Object max;
 }
