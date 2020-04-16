@@ -12,6 +12,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -238,14 +239,20 @@ public class ElasticSearchDao {
             }
             searchSourceBuilder.query(boolQueryBuilder);
         }
-        searchSourceBuilder.aggregation(AggregationBuilders.terms(aggField + "Agg").field(aggField).size(elasticSearch.getSize()));
-        searchSourceBuilder.from(elasticSearch.getFrom()).size(elasticSearch.getSize());
+        TermsAggregationBuilder termsAggregationBuilder = AggregationBuilders.terms(aggField + "Agg").field(aggField).size(elasticSearch.getSize());
+        if ("asc".equals(elasticSearch.getOrder()) || "ASC".equals(elasticSearch.getOrder())) {
+            termsAggregationBuilder.order(Terms.Order.aggregation("_count", true));
+        } else if ("desc".equals(elasticSearch.getOrder()) || "DESC".equals(elasticSearch.getOrder())) {
+            termsAggregationBuilder.order(Terms.Order.aggregation("_count", false));
+        }
+        searchSourceBuilder.aggregation(termsAggregationBuilder);
+        searchSourceBuilder.size(0);
         Search search = new Search.Builder(searchSourceBuilder.toString()).addIndex(elasticSearch.getIndex()).addType(elasticSearch.getType()).build();
         SearchResult searchResult = jestClient.execute(search);
         return searchResult.getAggregations().getTermsAggregation(aggField + "Agg").getBuckets();
     }
 
-    public List<TermsAggregation.Entry> aggregationSubTermQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, String aggField, String subAggField) throws Exception {
+    public List<TermsAggregation.Entry> aggregationTermSubQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, String aggField, String subAggField) throws Exception {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (termParams != null && !termParams.isEmpty()) {
             BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -256,27 +263,8 @@ public class ElasticSearchDao {
         }
         searchSourceBuilder.aggregation(AggregationBuilders.terms(aggField + "Agg").field(aggField).size(elasticSearch.getSize())
                 .subAggregation(AggregationBuilders.terms(subAggField + "SubAgg").field(subAggField).size(elasticSearch.getSize())));
-        searchSourceBuilder.from(elasticSearch.getFrom()).size(elasticSearch.getSize());
+        searchSourceBuilder.size(0);
         Search search = new Search.Builder(searchSourceBuilder.toString()).addIndex(elasticSearch.getIndex()).addType(elasticSearch.getType()).build();
-        SearchResult searchResult = jestClient.execute(search);
-        return searchResult.getAggregations().getTermsAggregation(aggField + "Agg").getBuckets();
-    }
-
-    public List<TermsAggregation.Entry> aggregationTermCountOrderQuery(ElasticSearch elasticSearch, Map<String, Object> termParams, String aggField) throws Exception {
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        if (termParams != null && !termParams.isEmpty()) {
-            BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-            for (Map.Entry<String, Object> item : termParams.entrySet()) {
-                boolQueryBuilder.must(QueryBuilders.termQuery(item.getKey(), item.getValue()));
-            }
-            searchSourceBuilder.query(boolQueryBuilder);
-        }
-        searchSourceBuilder.aggregation(AggregationBuilders.terms(aggField + "Agg").field(aggField).size(elasticSearch.getSize())
-                .order(Terms.Order.aggregation("total", false))
-                .subAggregation(AggregationBuilders.count("total").field(aggField)));
-        searchSourceBuilder.from(elasticSearch.getFrom()).size(elasticSearch.getSize());
-        String query = searchSourceBuilder.toString();
-        Search search = new Search.Builder(query).addIndex(elasticSearch.getIndex()).addType(elasticSearch.getType()).build();
         SearchResult searchResult = jestClient.execute(search);
         return searchResult.getAggregations().getTermsAggregation(aggField + "Agg").getBuckets();
     }
