@@ -170,7 +170,7 @@ public class CykbEsServerApplicationTests {
     @Test
     public void test11() {
         try {
-            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("desc").build();
+            ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("asc").build();
             elasticSearchDao.aggregationTermQuery(elasticSearch, null, "nickName");
         } catch (Exception e) {
             e.printStackTrace();
@@ -183,8 +183,8 @@ public class CykbEsServerApplicationTests {
         try {
             ElasticSearch elasticSearch = ElasticSearch.builder().index("users_index").type("users").sort("updateTime").order("desc").build();
             Map<String, Object> termParams = new HashMap<>();
-            termParams.put("nickName", "测试人员5");
-            elasticSearchDao.aggregationTermCountOrderQuery(elasticSearch, termParams, "nickName");
+//            termParams.put("nickName", "测试人员5");
+            elasticSearchDao.aggregationTermQuery(elasticSearch, termParams, "nickName");
         } catch (Exception e) {
             e.printStackTrace();
         }
