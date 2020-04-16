@@ -4,7 +4,7 @@ server:
 spring:
   mvc:
     servlet:
-      path: /cykb-es
+      path: /cykb
   elasticsearch:
     jest:
       uris: http://127.0.0.1:29200
