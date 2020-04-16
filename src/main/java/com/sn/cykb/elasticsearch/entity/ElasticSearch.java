@@ -26,5 +26,6 @@ public class ElasticSearch {
 
     private String sort;
 
-    private String order;
+    @Builder.Default
+    private String order = "asc";
 }
