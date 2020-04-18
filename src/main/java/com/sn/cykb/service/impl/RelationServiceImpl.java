@@ -6,7 +6,6 @@ import com.sn.cykb.dto.NovelsDTO;
 import com.sn.cykb.dto.RelationDTO;
 import com.sn.cykb.elasticsearch.dao.ElasticSearchDao;
 import com.sn.cykb.elasticsearch.entity.ElasticSearch;
-import com.sn.cykb.entity.Novels;
 import com.sn.cykb.entity.Relation;
 import com.sn.cykb.service.RelationService;
 import com.sn.cykb.util.DateUtil;
