@@ -139,11 +139,11 @@ public class ElasticSearchDao {
         return searchResult.getHits(Object.class);
     }
 
-    public List<SearchResult.Hit<Object, Void>> mustTermsRangeQuery(ElasticSearch elasticSearch, Map<String, Object> termsParams, List<Range> rangeList) throws Exception {
+    public List<SearchResult.Hit<Object, Void>> mustTermsRangeQuery(ElasticSearch elasticSearch, Map<String, String[]> termsParams, List<Range> rangeList) throws Exception {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         if (termsParams != null && !termsParams.isEmpty()) {
-            for (Map.Entry<String, Object> item : termsParams.entrySet()) {
+            for (Map.Entry<String, String[]> item : termsParams.entrySet()) {
                 boolQueryBuilder.must(QueryBuilders.termsQuery(item.getKey(), item.getValue()));
             }
         }

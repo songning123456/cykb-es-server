@@ -12,15 +12,13 @@ import com.sn.cykb.vo.RelationVO;
  */
 public interface RelationService {
 
-    CommonDTO<RelationDTO> bookcase(CommonVO<RelationVO> commonVO) throws Exception;
+    CommonDTO<NovelsDTO> bookcase(CommonVO<RelationVO> commonVO) throws Exception;
 
     CommonDTO<RelationDTO> insertBookcase(CommonVO<RelationVO> commonVO) throws Exception;
 
     CommonDTO<RelationDTO> topBookcase(CommonVO<RelationVO> commonVO) throws Exception;
 
     CommonDTO<RelationDTO> deleteBookcase(CommonVO<RelationVO> commonVO) throws Exception;
-
-    CommonDTO<RelationDTO> isExist(CommonVO<RelationVO> commonVO) throws Exception;
 
     CommonDTO<NovelsDTO> ourSearch() throws Exception;
 }

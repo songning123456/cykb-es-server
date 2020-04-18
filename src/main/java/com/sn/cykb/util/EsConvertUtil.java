@@ -37,6 +37,22 @@ public class EsConvertUtil {
         return target;
     }
 
+    public static NovelsDTO novelsMapConvert(Map<String, Object> src) {
+        NovelsDTO novelsDTO = new NovelsDTO();
+        novelsDTO.setNovelsId(src.get("es_metadata_id"));
+        novelsDTO.setTitle(src.get("title"));
+        novelsDTO.setAuthor(src.get("author"));
+        novelsDTO.setCategory(src.get("category"));
+        novelsDTO.setIntroduction(src.get("introduction"));
+        novelsDTO.setLatestChapter(src.get("latestChapter"));
+        novelsDTO.setCoverUrl(src.get("coverUrl"));
+        novelsDTO.setSourceUrl(src.get("sourceUrl"));
+        novelsDTO.setSourceName(src.get("sourceName"));
+        novelsDTO.setCreateTime(src.get("createTime"));
+        novelsDTO.setUpdateTime(src.get("updateTime"));
+        return novelsDTO;
+    }
+
     public static List<RelationDTO> relationEntityConvert(List<SearchResult.Hit<Object, Void>> src) {
         List<RelationDTO> target = new ArrayList<>();
         RelationDTO dto;

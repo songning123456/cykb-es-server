@@ -23,8 +23,8 @@ public class RelationController {
 
     @AControllerAspect(description = "我的书架")
     @PostMapping("/bookcase")
-    public CommonDTO<RelationDTO> bookcases(@RequestBody CommonVO<RelationVO> commonVO) throws Exception {
-        CommonDTO<RelationDTO> commonDTO = relationService.bookcase(commonVO);
+    public CommonDTO<NovelsDTO> bookcases(@RequestBody CommonVO<RelationVO> commonVO) throws Exception {
+        CommonDTO<NovelsDTO> commonDTO = relationService.bookcase(commonVO);
         return commonDTO;
     }
 
@@ -46,13 +46,6 @@ public class RelationController {
     @PostMapping("/deleteBookcase")
     public CommonDTO<RelationDTO> deleteBookcases(@RequestBody CommonVO<RelationVO> commonVO) throws Exception {
         CommonDTO<RelationDTO> commonDTO = relationService.deleteBookcase(commonVO);
-        return commonDTO;
-    }
-
-    @AControllerAspect(description = "是否存在在书架")
-    @PostMapping("/isExist")
-    public CommonDTO<RelationDTO> isExists(@RequestBody CommonVO<RelationVO> commonVO) throws Exception {
-        CommonDTO<RelationDTO> commonDTO = relationService.isExist(commonVO);
         return commonDTO;
     }
 

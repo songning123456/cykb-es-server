@@ -14,6 +14,7 @@ import com.sn.cykb.util.EsConvertUtil;
 import com.sn.cykb.vo.CommonVO;
 import com.sn.cykb.vo.RelationVO;
 import io.searchbox.core.SearchResult;
+import io.searchbox.core.search.aggregation.TermsAggregation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,10 +31,10 @@ public class RelationServiceImpl implements RelationService {
     private ElasticSearchDao elasticSearchDao;
 
     @Override
-    public CommonDTO<RelationDTO> bookcase(CommonVO<RelationVO> commonVO) throws Exception {
-        CommonDTO<RelationDTO> commonDTO = new CommonDTO<>();
+    public CommonDTO<NovelsDTO> bookcase(CommonVO<RelationVO> commonVO) throws Exception {
+        CommonDTO<NovelsDTO> commonDTO = new CommonDTO<>();
         String uniqueId = commonVO.getCondition().getUniqueId();
-        ElasticSearch relationEsSearch = ElasticSearch.builder().index("relation_index").type("relation").sort("updateTime").order("desc").build();
+        ElasticSearch relationEsSearch = ElasticSearch.builder().index("relation_index").type("relation").sort("updateTime").order("desc").size(10000).build();
         Map<String, Object> termParams = new HashMap<String, Object>(2) {{
             put("uniqueId", uniqueId);
         }};
@@ -44,33 +45,28 @@ public class RelationServiceImpl implements RelationService {
             commonDTO.setMessage("书架暂无您的书籍");
         } else {
             String sortType = commonVO.getCondition().getSortType();
-            List<RelationDTO> target = new ArrayList<>();
+            List<NovelsDTO> target = new ArrayList<>();
+            List<RelationDTO> relationList = EsConvertUtil.relationEntityConvert(src);
             if ("最近阅读".equals(sortType)) {
-                // 根据 最近阅读 排序 users_novels_relation => update_time
-                RelationDTO relationDTO;
                 ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").build();
-                for (SearchResult.Hit<Relation, Void> item : ((SearchResult) src).getHits(Relation.class)) {
-                    String novelsId = item.source.getNovelsId();
-                    relationDTO = new RelationDTO();
-                    Novels novels = (Novels) elasticSearchDao.findById(novelsEsSearch, novelsId);
-                    relationDTO.setAuthor(novels.getAuthor());
-                    target.add(relationDTO);
+                // 根据 最近阅读 排序 users_novels_relation => update_time
+                for (RelationDTO item : relationList) {
+                    String novelsId = item.getNovelsId().toString();
+                    Map novelsMap = (Map) elasticSearchDao.findById(novelsEsSearch, novelsId);
+                    target.add(EsConvertUtil.novelsMapConvert(novelsMap));
                 }
             } else {
                 // 根据最近更新排序 novels => update_time
                 ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").sort("updateTime").order("desc").size(10000).build();
                 List<String> novelsIds = new ArrayList<>();
-                for (SearchResult.Hit<Relation, Void> item : ((SearchResult) src).getHits(Relation.class)) {
-                    novelsIds.add(item.source.getNovelsId());
+                for (RelationDTO item : relationList) {
+                    novelsIds.add(item.getNovelsId().toString());
                 }
-                Map<String, Object> termsParams = new HashMap<String, Object>(2) {{
-                    put("_id", novelsIds);
+                Map<String, String[]> termsParams = new HashMap<String, String[]>(2) {{
+                    put("_id", novelsIds.toArray(new String[novelsIds.size()]));
                 }};
                 List<SearchResult.Hit<Object, Void>> res = elasticSearchDao.mustTermsRangeQuery(novelsEsSearch, termsParams, null);
-                for (SearchResult.Hit<Novels, Void> item : ((SearchResult) res).getHits(Novels.class)) {
-                    RelationDTO dto = new RelationDTO();
-                    dto.setAuthor(item.source.getAuthor());
-                }
+                target = EsConvertUtil.novelsEntityConvert(res);
             }
             commonDTO.setData(target);
             commonDTO.setTotal((long) target.size());
@@ -81,16 +77,23 @@ public class RelationServiceImpl implements RelationService {
     @Override
     public CommonDTO<RelationDTO> insertBookcase(CommonVO<RelationVO> commonVO) throws Exception {
         CommonDTO<RelationDTO> commonDTO = new CommonDTO<>();
-//        String novelsId = commonVO.getCondition().getNovelsId();
-//        String uniqueId = commonVO.getCondition().getUniqueId();
-//        Relation relation = usersNovelsRelationRepository.findByUniqueIdAndAndNovelsId(uniqueId, novelsId);
-//        if (relation != null) {
-//            commonDTO.setStatus(201);
-//            commonDTO.setMessage("书架已存在此书");
-//            return commonDTO;
-//        }
-//        relation = Relation.builder().novelsId(novelsId).uniqueId(uniqueId).updateTime(new Date()).build();
-//        usersNovelsRelationRepository.save(relation);
+        String novelsId = commonVO.getCondition().getNovelsId();
+        String uniqueId = commonVO.getCondition().getUniqueId();
+        ElasticSearch elasticSearch = ElasticSearch.builder().index("relation_index").type("relation").build();
+        Map<String, Object> termParams = new HashMap<String, Object>() {
+            {
+                put("uniqueId", uniqueId);
+                put("novelsId", novelsId);
+            }
+        };
+        List<SearchResult.Hit<Object, Void>> src = elasticSearchDao.mustTermRangeQuery(elasticSearch, termParams, null);
+        if (!src.isEmpty()) {
+            commonDTO.setStatus(201);
+            commonDTO.setMessage("书架已存在此书");
+            return commonDTO;
+        }
+        Relation relation = Relation.builder().novelsId(novelsId).uniqueId(uniqueId).updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
+        elasticSearchDao.save(elasticSearch, relation);
         return commonDTO;
     }
 
@@ -120,38 +123,35 @@ public class RelationServiceImpl implements RelationService {
     @Override
     public CommonDTO<RelationDTO> deleteBookcase(CommonVO<RelationVO> commonVO) throws Exception {
         CommonDTO<RelationDTO> commonDTO = new CommonDTO<>();
-//        String uniqueId = commonVO.getCondition().getUniqueId();
-//        List<String> novelsIdList = commonVO.getCondition().getNovelsIdList();
-//        usersNovelsRelationRepository.deleteInNative(uniqueId, novelsIdList);
-        return commonDTO;
-    }
-
-    @Override
-    public CommonDTO<RelationDTO> isExist(CommonVO<RelationVO> commonVO) throws Exception {
-        CommonDTO<RelationDTO> commonDTO = new CommonDTO<>();
-//        String uniqueId = commonVO.getCondition().getUniqueId();
-//        String novelsId = commonVO.getCondition().getNovelsId();
-//        Relation relation = usersNovelsRelationRepository.findByUniqueIdAndAndNovelsId(uniqueId, novelsId);
-//        if (relation == null) {
-//            commonDTO.setStatus(202);
-//        }
+        String uniqueId = commonVO.getCondition().getUniqueId();
+        List<String> novelsIdList = commonVO.getCondition().getNovelsIdList();
+        ElasticSearch elasticSearch = ElasticSearch.builder().index("relation_index").type("relation").build();
+        Map<String, String[]> termsParams = new HashMap<String, String[]>() {{
+            put("uniqueId", new String[]{uniqueId});
+            put("novelsId", novelsIdList.toArray(new String[novelsIdList.size()]));
+        }};
+        elasticSearchDao.mustTermsDelete(elasticSearch, termsParams);
         return commonDTO;
     }
 
     @Override
     public CommonDTO<NovelsDTO> ourSearch() throws Exception {
         CommonDTO<NovelsDTO> commonDTO = new CommonDTO<>();
-//        List<Map<String, Object>> novelsList = usersNovelsRelationRepository.countByNovelsIdNative();
-//        List<String> novelsIdList = new ArrayList<>();
-//        for (Map<String, Object> item : novelsList) {
-//            String novelsId = String.valueOf(item.get("novelsId"));
-//            novelsIdList.add(novelsId);
-//        }
-//        List<Novels> src = novelsRepository.findAllByIdInOrderByUpdateTimeDesc(novelsIdList);
-//        List<NovelsDTO> target = new ArrayList<>();
-//        ClassConvertUtil.populateList(src, target, NovelsDTO.class);
-//        commonDTO.setData(target);
-//        commonDTO.setTotal((long) target.size());
+        ElasticSearch elasticSearch = ElasticSearch.builder().index("relation_index").type("relation").order("desc").build();
+        List<TermsAggregation.Entry> src = elasticSearchDao.aggregationTermQuery(elasticSearch, null, "novelsId");
+        List<String> novelsIdList = new ArrayList<>();
+        for (TermsAggregation.Entry item : src) {
+            String novelsId = item.getKey();
+            novelsIdList.add(novelsId);
+        }
+        ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").sort("updateTime").order("desc").size(10000).build();
+        Map<String, String[]> termsParams = new HashMap<String, String[]>() {{
+            put("_id", novelsIdList.toArray(new String[novelsIdList.size()]));
+        }};
+        List<SearchResult.Hit<Object, Void>> novelsList = elasticSearchDao.mustTermsRangeQuery(novelsEsSearch, termsParams, null);
+        List<NovelsDTO> target = EsConvertUtil.novelsEntityConvert(novelsList);
+        commonDTO.setData(target);
+        commonDTO.setTotal((long) target.size());
         return commonDTO;
     }
 }
