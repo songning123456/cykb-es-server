@@ -9,19 +9,23 @@ import lombok.Data;
 @Data
 public class RelationDTO {
 
-    private String title;
+    private Object title;
 
-    private String author;
+    private Object author;
 
-    private String coverUrl;
+    private Object coverUrl;
 
-    private String chapter;
+    private Object chapter;
 
-    private String updateTime;
+    private Object updateTime;
 
-    private String novelsId;
+    private Object novelsId;
 
-    private String content;
+    private Object content;
 
-    private String chaptersId;
+    private Object chaptersId;
+
+    private Object relationId;
+
+    private Object uniqueId;
 }

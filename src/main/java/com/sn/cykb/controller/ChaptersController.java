@@ -20,12 +20,6 @@ public class ChaptersController {
     @Autowired
     private ChaptersService chaptersService;
 
-    @AControllerAspect(description = "获取目录")
-    @PostMapping("/directory")
-    public CommonDTO<ChaptersDTO> directorys(@RequestBody CommonVO<ChaptersVO> commonVO) throws Exception {
-        CommonDTO<ChaptersDTO> commonDTO = chaptersService.directory(commonVO);
-        return commonDTO;
-    }
 
     @AControllerAspect(description = "从未阅读过/删除浏览器缓存 每次都从第一章开始")
     @GetMapping("/firstChapter")

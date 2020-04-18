@@ -42,7 +42,7 @@ public class NovelsServiceImpl implements NovelsService {
             Range range = Range.builder().rangeName("createTime").ltOrLte("lt").max(createTime).build();
             src = elasticSearchDao.mustTermRangeQuery(novelsEsSearch, null, Collections.singletonList(range));
         }
-        List<NovelsDTO> target = EsConvertUtil.novelsAllFieldConvert(src);
+        List<NovelsDTO> target = EsConvertUtil.novelsEntityConvert(src);
         commonDTO.setData(target);
         return commonDTO;
     }
@@ -101,7 +101,7 @@ public class NovelsServiceImpl implements NovelsService {
             Range range = Range.builder().rangeName("createTime").ltOrLte("lt").max(createTime).build();
             src = elasticSearchDao.mustTermRangeQuery(novelsEsSearch, termParams, Collections.singletonList(range));
         }
-        List<NovelsDTO> target = EsConvertUtil.novelsAllFieldConvert(src);
+        List<NovelsDTO> target = EsConvertUtil.novelsEntityConvert(src);
         commonDTO.setData(target);
         return commonDTO;
     }
@@ -117,7 +117,7 @@ public class NovelsServiceImpl implements NovelsService {
             }
         };
         List<SearchResult.Hit<Object, Void>> src = elasticSearchDao.mustTermRangeQuery(novelsEsSearch, termParams, null);
-        List<NovelsDTO> target = EsConvertUtil.novelsAllFieldConvert(src);
+        List<NovelsDTO> target = EsConvertUtil.novelsEntityConvert(src);
         commonDTO.setData(target);
         commonDTO.setTotal((long) target.size());
         return commonDTO;
@@ -134,7 +134,7 @@ public class NovelsServiceImpl implements NovelsService {
             }
         };
         List<SearchResult.Hit<Object, Void>> src = elasticSearchDao.mustTermShouldWildCardQuery(novelsEsSearch, null, wildCardParams, null);
-        List<NovelsDTO> target = EsConvertUtil.novelsAllFieldConvert(src);
+        List<NovelsDTO> target = EsConvertUtil.novelsEntityConvert(src);
         commonDTO.setData(target);
         return commonDTO;
     }
@@ -160,7 +160,7 @@ public class NovelsServiceImpl implements NovelsService {
             Range range = Range.builder().rangeName("createTime").ltOrLte("lt").max(createTime).build();
             src = elasticSearchDao.mustTermShouldWildCardQuery(novelsEsSearch, null, wildCardParams, Collections.singletonList(range));
         }
-        List<NovelsDTO> target = EsConvertUtil.novelsAllFieldConvert(src);
+        List<NovelsDTO> target = EsConvertUtil.novelsEntityConvert(src);
         commonDTO.setData(target);
         return commonDTO;
     }

@@ -9,11 +9,13 @@ import lombok.Data;
 @Data
 public class ChaptersDTO {
 
-    private String novelsId;
+    private Object novelsId;
 
-    private String chapter;
+    private Object chapter;
 
-    private String content;
+    private Object content;
 
-    private String chaptersId;
+    private Object chaptersId;
+
+    private Object updateTime;
 }
