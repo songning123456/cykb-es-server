@@ -9,25 +9,27 @@ import lombok.Data;
 @Data
 public class NovelsDTO {
 
-    private String novelsId;
+    private Object novelsId;
 
-    private String title;
+    private Object title;
 
-    private String author;
+    private Object author;
 
-    private String category;
+    private Object category;
 
-    private String introduction;
+    private Object introduction;
 
-    private String latestChapter;
+    private Object latestChapter;
 
-    private String coverUrl;
+    private Object coverUrl;
 
-    private Integer total;
+    private Object total;
 
-    private Long createTime;
+    private Object createTime;
 
-    private String sourceUrl;
+    private Object sourceUrl;
 
-    private String sourceName;
+    private Object sourceName;
+
+    private Object updateTime;
 }
