@@ -9,7 +9,7 @@ import java.util.List;
  * @date: 2020/3/9 23:03
  */
 @Data
-public class UsersNovelsRelationVO {
+public class RelationVO {
 
     private String uniqueId;
 

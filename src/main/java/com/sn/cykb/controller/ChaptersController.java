@@ -22,21 +22,21 @@ public class ChaptersController {
 
     @AControllerAspect(description = "获取目录")
     @PostMapping("/directory")
-    public CommonDTO<ChaptersDTO> directorys(@RequestBody CommonVO<ChaptersVO> commonVO) {
+    public CommonDTO<ChaptersDTO> directorys(@RequestBody CommonVO<ChaptersVO> commonVO) throws Exception {
         CommonDTO<ChaptersDTO> commonDTO = chaptersService.directory(commonVO);
         return commonDTO;
     }
 
     @AControllerAspect(description = "从未阅读过/删除浏览器缓存 每次都从第一章开始")
     @GetMapping("/firstChapter")
-    public CommonDTO<ChaptersDTO> firstChapters(@RequestParam(value = "novelsId") String novelsId) {
+    public CommonDTO<ChaptersDTO> firstChapters(@RequestParam(value = "novelsId") String novelsId) throws Exception {
         CommonDTO<ChaptersDTO> commonDTO = chaptersService.firstChapter(novelsId);
         return commonDTO;
     }
 
     @AControllerAspect(description = "根据浏览器缓存的chaptersId 阅读")
     @GetMapping("/readMore")
-    public CommonDTO<ChaptersDTO> readMores(@RequestParam(value = "novelsId") String novelsId, @RequestParam(value = "chaptersId") String chaptersId) {
+    public CommonDTO<ChaptersDTO> readMores(@RequestParam(value = "novelsId") String novelsId, @RequestParam(value = "chaptersId") String chaptersId) throws Exception {
         CommonDTO<ChaptersDTO> commonDTO = chaptersService.readMore(novelsId, chaptersId);
         return commonDTO;
     }

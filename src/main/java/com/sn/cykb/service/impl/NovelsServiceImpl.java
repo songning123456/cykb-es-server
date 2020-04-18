@@ -33,7 +33,7 @@ public class NovelsServiceImpl implements NovelsService {
         int pageRecordNum = commonVO.getPageRecordNum();
         List<SearchResult.Hit<Object, Void>> src;
         List<NovelsDTO> target = new ArrayList<>();
-        ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").order("createTime").sort("desc").size(pageRecordNum).build();
+        ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").sort("createTime").order("desc").size(pageRecordNum).build();
         if (null != recordStartNo) {
             // 第一次查询
             src = elasticSearchDao.mustTermRangeQuery(novelsEsSearch, null, null);
@@ -54,6 +54,7 @@ public class NovelsServiceImpl implements NovelsService {
             dto.setCoverUrl(item.source.getCoverUrl());
             dto.setSourceUrl(item.source.getSourceUrl());
             dto.setSourceName(item.source.getSourceName());
+            target.add(dto);
         }
         commonDTO.setData(target);
         return commonDTO;
@@ -63,23 +64,24 @@ public class NovelsServiceImpl implements NovelsService {
     public CommonDTO<NovelsDTO> classifyCount() throws Exception {
         CommonDTO<NovelsDTO> commonDTO = new CommonDTO<>();
         ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").build();
-        List<TermsAggregation.Entry> src = elasticSearchDao.aggregationTermSubQuery(novelsEsSearch, null, "sourceName", "category");
+        List<TermsAggregation.Entry> src = elasticSearchDao.aggregationTermQuery(novelsEsSearch, null, "sourceName");
         List<NovelsDTO> target = new ArrayList<>();
         Map<String, Object> dataExt = new HashMap<>(2);
         for (TermsAggregation.Entry item : src) {
             NovelsDTO dto = new NovelsDTO();
-            dto.setSourceName(item.getKey());
-            dataExt.put(item.getKey(), )
-        }
-        src.forEach(item -> {
-            NovelsDTO dto = new NovelsDTO();
-            String sourceName = String.valueOf(item.get("sourceName"));
+            String sourceName = item.getKey();
             dto.setSourceName(sourceName);
-            List<Map<String, Object>> mapList = novelsRepository.countCategoryBySourceNative(sourceName);
-            dataExt.put(sourceName, mapList);
-            dto.setTotal(Integer.parseInt(item.get("total").toString()));
-            target.add(dto);
-        });
+            Map<String, Object> termParams = new HashMap<String, Object>() {{
+                put("sourceName", sourceName);
+            }};
+            List<TermsAggregation.Entry> list = elasticSearchDao.aggregationTermQuery(novelsEsSearch, termParams, "category");
+            Map<String, Object> ext = new HashMap<>();
+            list.forEach(val -> {
+                ext.put("category", val.getKey());
+                ext.put("categoryTotal", val.getCount());
+            });
+            dataExt.put(item.getKey(), ext);
+        }
         commonDTO.setTotal((long) src.size());
         commonDTO.setData(target);
         commonDTO.setDataExt(dataExt);
@@ -93,15 +95,35 @@ public class NovelsServiceImpl implements NovelsService {
         int pageRecordNum = commonVO.getPageRecordNum();
         String sourceName = commonVO.getCondition().getSourceName();
         String category = commonVO.getCondition().getCategory();
-        List<Novels> src;
+        List<SearchResult.Hit<Object, Void>> src;
         List<NovelsDTO> target = new ArrayList<>();
+        ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").sort("createTime").order("desc").size(pageRecordNum).build();
+        Map<String, Object> termParams = new HashMap<String, Object>() {
+            {
+                put("sourceName", sourceName);
+                put("category", category);
+            }
+        };
         if (null != recordStartNo) {
-            src = novelsRepository.findFirstClassifyNative(sourceName, category, pageRecordNum);
+            src = elasticSearchDao.mustTermRangeQuery(novelsEsSearch, termParams, null);
         } else {
             Long createTime = commonVO.getCondition().getCreateTime();
-            src = novelsRepository.findMoreClassifyNative(sourceName, category, createTime, pageRecordNum);
+            Range range = Range.builder().rangeName("createTime").ltOrLte("lt").max(createTime).build();
+            src = elasticSearchDao.mustTermRangeQuery(novelsEsSearch, termParams, Collections.singletonList(range));
         }
-        ClassConvertUtil.populateList(src, target, NovelsDTO.class);
+        for (SearchResult.Hit<Novels, Void> item : ((SearchResult) src).getHits(Novels.class)) {
+            NovelsDTO dto = new NovelsDTO();
+            dto.setNovelsId(item.id);
+            dto.setTitle(item.source.getTitle());
+            dto.setAuthor(item.source.getAuthor());
+            dto.setCategory(item.source.getCategory());
+            dto.setIntroduction(item.source.getIntroduction());
+            dto.setLatestChapter(item.source.getLatestChapter());
+            dto.setCoverUrl(item.source.getCoverUrl());
+            dto.setSourceUrl(item.source.getSourceUrl());
+            dto.setSourceName(item.source.getSourceName());
+            target.add(dto);
+        }
         commonDTO.setData(target);
         return commonDTO;
     }
@@ -110,9 +132,27 @@ public class NovelsServiceImpl implements NovelsService {
     public CommonDTO<NovelsDTO> sameAuthor(CommonVO<NovelsVO> commonVO) throws Exception {
         CommonDTO<NovelsDTO> commonDTO = new CommonDTO<>();
         String author = commonVO.getCondition().getAuthor();
-        List<Novels> src = novelsRepository.findByAuthorOrderByCreateTimeDesc(author);
+        ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").sort("createTime").order("desc").build();
+        Map<String, Object> termParams = new HashMap<String, Object>() {
+            {
+                put("author", author);
+            }
+        };
+        List<SearchResult.Hit<Object, Void>> src = elasticSearchDao.mustTermRangeQuery(novelsEsSearch, termParams, null);
         List<NovelsDTO> target = new ArrayList<>();
-        ClassConvertUtil.populateList(src, target, NovelsDTO.class);
+        for (SearchResult.Hit<Novels, Void> item : ((SearchResult) src).getHits(Novels.class)) {
+            NovelsDTO dto = new NovelsDTO();
+            dto.setNovelsId(item.id);
+            dto.setTitle(item.source.getTitle());
+            dto.setAuthor(item.source.getAuthor());
+            dto.setCategory(item.source.getCategory());
+            dto.setIntroduction(item.source.getIntroduction());
+            dto.setLatestChapter(item.source.getLatestChapter());
+            dto.setCoverUrl(item.source.getCoverUrl());
+            dto.setSourceUrl(item.source.getSourceUrl());
+            dto.setSourceName(item.source.getSourceName());
+            target.add(dto);
+        }
         commonDTO.setData(target);
         commonDTO.setTotal((long) target.size());
         return commonDTO;
@@ -121,9 +161,28 @@ public class NovelsServiceImpl implements NovelsService {
     @Override
     public CommonDTO<NovelsDTO> fastSearch(String authorOrTitle) throws Exception {
         CommonDTO<NovelsDTO> commonDTO = new CommonDTO<>();
-        List<Novels> src = novelsRepository.findByAuthorOrTitleNative(authorOrTitle);
+        ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").build();
+        Map<String, Object> wildCardParams = new HashMap<String, Object>() {
+            {
+                put("author", authorOrTitle);
+                put("title", authorOrTitle);
+            }
+        };
+        List<SearchResult.Hit<Object, Void>> src = elasticSearchDao.mustTermShouldWildCardQuery(novelsEsSearch, null, wildCardParams, null);
         List<NovelsDTO> target = new ArrayList<>();
-        ClassConvertUtil.populateList(src, target, NovelsDTO.class);
+        for (SearchResult.Hit<Novels, Void> item : ((SearchResult) src).getHits(Novels.class)) {
+            NovelsDTO dto = new NovelsDTO();
+            dto.setNovelsId(item.id);
+            dto.setTitle(item.source.getTitle());
+            dto.setAuthor(item.source.getAuthor());
+            dto.setCategory(item.source.getCategory());
+            dto.setIntroduction(item.source.getIntroduction());
+            dto.setLatestChapter(item.source.getLatestChapter());
+            dto.setCoverUrl(item.source.getCoverUrl());
+            dto.setSourceUrl(item.source.getSourceUrl());
+            dto.setSourceName(item.source.getSourceName());
+            target.add(dto);
+        }
         commonDTO.setData(target);
         return commonDTO;
     }
@@ -134,15 +193,35 @@ public class NovelsServiceImpl implements NovelsService {
         Integer recordStartNo = commonVO.getRecordStartNo();
         int pageRecordNum = commonVO.getPageRecordNum();
         String authorOrTitle = commonVO.getCondition().getAuthorOrTitle();
-        List<Novels> src;
-        List<NovelsDTO> target = new ArrayList<>();
+        List<SearchResult.Hit<Object, Void>> src;
+        ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").sort("createTime").order("desc").size(pageRecordNum).build();
+        Map<String, Object> wildCardParams = new HashMap<String, Object>() {
+            {
+                put("author", authorOrTitle);
+                put("title", authorOrTitle);
+            }
+        };
         if (recordStartNo != null) {
-            src = novelsRepository.findFirstByAuthorOrTitleNative(authorOrTitle, pageRecordNum);
+            src = elasticSearchDao.mustTermShouldWildCardQuery(novelsEsSearch, null, wildCardParams, null);
         } else {
             Long createTime = commonVO.getCondition().getCreateTime();
-            src = novelsRepository.findMoreByAuthorOrTitleNative(authorOrTitle, createTime, pageRecordNum);
+            Range range = Range.builder().rangeName("createTime").ltOrLte("lt").max(createTime).build();
+            src = elasticSearchDao.mustTermShouldWildCardQuery(novelsEsSearch, null, wildCardParams, Collections.singletonList(range));
         }
-        ClassConvertUtil.populateList(src, target, NovelsDTO.class);
+        List<NovelsDTO> target = new ArrayList<>();
+        for (SearchResult.Hit<Novels, Void> item : ((SearchResult) src).getHits(Novels.class)) {
+            NovelsDTO dto = new NovelsDTO();
+            dto.setNovelsId(item.id);
+            dto.setTitle(item.source.getTitle());
+            dto.setAuthor(item.source.getAuthor());
+            dto.setCategory(item.source.getCategory());
+            dto.setIntroduction(item.source.getIntroduction());
+            dto.setLatestChapter(item.source.getLatestChapter());
+            dto.setCoverUrl(item.source.getCoverUrl());
+            dto.setSourceUrl(item.source.getSourceUrl());
+            dto.setSourceName(item.source.getSourceName());
+            target.add(dto);
+        }
         commonDTO.setData(target);
         return commonDTO;
     }

@@ -11,9 +11,9 @@ import com.sn.cykb.vo.CommonVO;
  */
 public interface ChaptersService {
 
-    CommonDTO<ChaptersDTO> directory(CommonVO<ChaptersVO> commonVO);
+    CommonDTO<ChaptersDTO> directory(CommonVO<ChaptersVO> commonVO) throws Exception;
 
-    CommonDTO<ChaptersDTO> firstChapter(String novelsId);
+    CommonDTO<ChaptersDTO> firstChapter(String novelsId) throws Exception;
 
-    CommonDTO<ChaptersDTO> readMore(String novelsId, String chaptersId);
+    CommonDTO<ChaptersDTO> readMore(String novelsId, String chaptersId) throws Exception;
 }

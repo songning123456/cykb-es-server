@@ -2,20 +2,18 @@ package com.sn.cykb.service.impl;
 
 import com.sn.cykb.dto.ChaptersDTO;
 import com.sn.cykb.dto.CommonDTO;
+import com.sn.cykb.elasticsearch.dao.ElasticSearchDao;
+import com.sn.cykb.elasticsearch.entity.ElasticSearch;
 import com.sn.cykb.entity.Chapters;
-import com.sn.cykb.repository.ChaptersRepository;
 import com.sn.cykb.service.ChaptersService;
-import com.sn.cykb.util.ClassConvertUtil;
 import com.sn.cykb.vo.ChaptersVO;
 import com.sn.cykb.vo.CommonVO;
-import org.apache.commons.lang3.StringUtils;
+import io.searchbox.core.SearchResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author: songning
@@ -25,19 +23,25 @@ import java.util.Map;
 public class ChaptersServiceImpl implements ChaptersService {
 
     @Autowired
-    private ChaptersRepository chaptersRepository;
+    private ElasticSearchDao elasticSearchDao;
 
     @Override
-    public CommonDTO<ChaptersDTO> directory(CommonVO<ChaptersVO> commonVO) {
+    public CommonDTO<ChaptersDTO> directory(CommonVO<ChaptersVO> commonVO) throws Exception {
         CommonDTO<ChaptersDTO> commonDTO = new CommonDTO<>();
         String novelsId = commonVO.getCondition().getNovelsId();
-        List<Map<String, Object>> src = chaptersRepository.findDirectoryNative(novelsId);
+        ElasticSearch chapterEsSearch = ElasticSearch.builder().index("chapters_index").type("chapters").sort("updateTime").order("desc").size(10000).build();
+        Map<String, Object> termParams = new HashMap<String, Object>() {
+            {
+                put("novelsId", novelsId);
+            }
+        };
+        List<SearchResult.Hit<Object, Void>> src = elasticSearchDao.mustTermRangeQuery(chapterEsSearch, termParams, null);
         List<ChaptersDTO> target = new ArrayList<>();
         ChaptersDTO dto;
-        for (Map<String, Object> item : src) {
+        for (SearchResult.Hit<Chapters, Void> item : ((SearchResult) src).getHits(Chapters.class)) {
             dto = new ChaptersDTO();
-            dto.setNovelsId(item.get("id").toString());
-            dto.setChapter(item.get("chapter").toString());
+            dto.setNovelsId(item.id);
+            dto.setChapter(item.source.getChapter());
             target.add(dto);
         }
         commonDTO.setData(target);
@@ -45,26 +49,63 @@ public class ChaptersServiceImpl implements ChaptersService {
     }
 
     @Override
-    public CommonDTO<ChaptersDTO> firstChapter(String novelsId) {
+    public CommonDTO<ChaptersDTO> firstChapter(String novelsId) throws Exception {
         CommonDTO<ChaptersDTO> commonDTO = new CommonDTO<>();
-        Chapters chapters = chaptersRepository.findTopByNovelsIdNative(novelsId);
-        List<Map<String, Object>> ext = chaptersRepository.findDirectoryNative(novelsId);
-        commonDTO.setListExt(ext);
-        ChaptersDTO chaptersDTO = new ChaptersDTO();
-        ClassConvertUtil.populate(chapters, chaptersDTO);
-        commonDTO.setData(Collections.singletonList(chaptersDTO));
+        ElasticSearch chapterEsSearch = ElasticSearch.builder().index("chapters_index").type("chapters").sort("updateTime").order("desc").size(1).build();
+        Map<String, Object> termParams = new HashMap<String, Object>(2) {{
+            put("novelsId", novelsId);
+        }};
+        List<SearchResult.Hit<Object, Void>> src = elasticSearchDao.mustTermRangeQuery(chapterEsSearch, termParams, null);
+        List<ChaptersDTO> target = new ArrayList<>();
+        for (SearchResult.Hit<Chapters, Void> item : ((SearchResult) src).getHits(Chapters.class)) {
+            ChaptersDTO dto = new ChaptersDTO();
+            dto.setChaptersId(item.id);
+            dto.setChapter(item.source.getChapter());
+            dto.setContent(item.source.getContent());
+            dto.setNovelsId(item.source.getNovelsId());
+            target.add(dto);
+        }
+        ElasticSearch chapterEsSearch2 = ElasticSearch.builder().index("chapters_index").type("chapters").sort("updateTime").order("desc").size(10000).build();
+        List<SearchResult.Hit<Object, Void>> ext = elasticSearchDao.mustTermRangeQuery(chapterEsSearch2, termParams, null);
+        List<Map<String, Object>> listExt = new ArrayList<>();
+        for (SearchResult.Hit<Chapters, Void> item : ((SearchResult) ext).getHits(Chapters.class)) {
+            Map<String, Object> map = new HashMap<>(2);
+            map.put("chapterId", item.id);
+            map.put("chapter", item.source.getChapter());
+            map.put("content", item.source.getContent());
+            map.put("novelsId", item.source.getNovelsId());
+            listExt.add(map);
+        }
+        commonDTO.setListExt(listExt);
+        commonDTO.setData(target);
         return commonDTO;
     }
 
     @Override
-    public CommonDTO<ChaptersDTO> readMore(String novelsId, String chaptersId) {
+    public CommonDTO<ChaptersDTO> readMore(String novelsId, String chaptersId) throws Exception {
         CommonDTO<ChaptersDTO> commonDTO = new CommonDTO<>();
-        Chapters chapters = chaptersRepository.findById(chaptersId).get();
+        ElasticSearch chapterEsSearch = ElasticSearch.builder().index("chapters_index").type("chapters").build();
+        Chapters chapters = (Chapters) elasticSearchDao.findById(chapterEsSearch, chaptersId);
         ChaptersDTO chaptersDTO = new ChaptersDTO();
-        ClassConvertUtil.populate(chapters, chaptersDTO);
+        chaptersDTO.setNovelsId(chapters.getNovelsId());
+        chaptersDTO.setContent(chapters.getContent());
+        chaptersDTO.setChaptersId(chaptersId);
         if (!StringUtils.isEmpty(novelsId)) {
-            List<Map<String, Object>> ext = chaptersRepository.findDirectoryNative(novelsId);
-            commonDTO.setListExt(ext);
+            ElasticSearch chapterEsSearch2 = ElasticSearch.builder().index("chapters_index").type("chapters").sort("updateTime").order("desc").size(10000).build();
+            Map<String, Object> termParams = new HashMap<String, Object>(2) {{
+                put("novelsId", novelsId);
+            }};
+            List<SearchResult.Hit<Object, Void>> ext = elasticSearchDao.mustTermRangeQuery(chapterEsSearch2, termParams, null);
+            List<Map<String, Object>> listExt = new ArrayList<>();
+            for (SearchResult.Hit<Chapters, Void> item : ((SearchResult) ext).getHits(Chapters.class)) {
+                Map<String, Object> map = new HashMap<>(2);
+                map.put("chapterId", item.id);
+                map.put("chapter", item.source.getChapter());
+                map.put("content", item.source.getContent());
+                map.put("novelsId", item.source.getNovelsId());
+                listExt.add(map);
+            }
+            commonDTO.setListExt(listExt);
         }
         commonDTO.setData(Collections.singletonList(chaptersDTO));
         return commonDTO;
