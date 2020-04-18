@@ -22,28 +22,28 @@ public class NovelsController {
     @Autowired
     private NovelsService novelsService;
 
-    @AControllerAspect(description = "首页查询小说-ok")
+    @AControllerAspect(description = "首页查询小说")
     @PostMapping("/homePage")
     public CommonDTO<NovelsDTO> homePages(@RequestBody CommonVO<NovelsVO> commonVO) throws Exception {
         CommonDTO<NovelsDTO> commonDTO = novelsService.homePage(commonVO);
         return commonDTO;
     }
 
-    @AControllerAspect(description = "分类统计小说总数-ok")
+    @AControllerAspect(description = "分类统计小说总数")
     @GetMapping("/classifyCount")
     public CommonDTO<NovelsDTO> classifyCounts() throws Exception {
         CommonDTO<NovelsDTO> commonDTO = novelsService.classifyCount();
         return commonDTO;
     }
 
-    @AControllerAspect(description = "分类查询小说-ok")
+    @AControllerAspect(description = "分类查询小说")
     @PostMapping("/classifyResult")
     public CommonDTO<NovelsDTO> classifyResults(@RequestBody CommonVO<NovelsVO> commonVO) throws Exception {
         CommonDTO<NovelsDTO> commonDTO = novelsService.classifyResult(commonVO);
         return commonDTO;
     }
 
-    @AControllerAspect(description = "作者也写过-ok")
+    @AControllerAspect(description = "作者也写过")
     @PostMapping("/sameAuthor")
     public CommonDTO<NovelsDTO> sameAuthors(@RequestBody CommonVO<NovelsVO> commonVO) throws Exception {
         CommonDTO<NovelsDTO> commonDTO = novelsService.sameAuthor(commonVO);
@@ -51,14 +51,14 @@ public class NovelsController {
     }
 
     @AControllerAspect(description = "快速搜索")
-    @GetMapping("/fastSearch-ok")
+    @GetMapping("/fastSearch")
     public CommonDTO<NovelsDTO> fastSearches(@RequestParam(value = "authorOrTitle") String authorOrTitle) throws Exception {
         CommonDTO<NovelsDTO> commonDTO = novelsService.fastSearch(authorOrTitle);
         return commonDTO;
     }
 
     @AControllerAspect(description = "搜索结果")
-    @PostMapping("/searchResult-ok")
+    @PostMapping("/searchResult")
     public CommonDTO<NovelsDTO> searchResults(@RequestBody CommonVO<NovelsVO> commonVO) throws Exception {
         CommonDTO<NovelsDTO> commonDTO = novelsService.searchResult(commonVO);
         return commonDTO;
