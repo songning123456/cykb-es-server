@@ -33,7 +33,7 @@ public class UsersController {
 
     @PostMapping("/weixin/getUsersInfo")
     @AControllerAspect(description = "登陆时微信获取用户信息")
-    CommonDTO<UsersDTO> getWxUsersInfos(@RequestBody CommonVO<UsersVO> commonVO) {
+    CommonDTO<UsersDTO> getWxUsersInfos(@RequestBody CommonVO<UsersVO> commonVO) throws Exception {
         CommonDTO<UsersDTO> commonDTO = usersService.getWxUsersInfo(commonVO);
         return commonDTO;
     }

@@ -60,7 +60,7 @@ public class ElasticSearchDao {
         }
     }
 
-    public <T> void update(ElasticSearch elasticSearch, String esId, T entity) throws Exception {
+    public <T> JestResult update(ElasticSearch elasticSearch, String esId, T entity) throws Exception {
         if (StringUtils.isEmpty(esId) || entity == null) {
             throw new Exception("elasticSearch-update 参数异常");
         }
@@ -69,6 +69,7 @@ public class ElasticSearchDao {
         if (!jestResult.isSucceeded()) {
             throw new Exception(jestResult.getErrorMessage());
         }
+        return jestResult;
     }
 
     public Object findById(ElasticSearch elasticSearch, String esId) throws Exception {
