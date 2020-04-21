@@ -9,11 +9,11 @@ import lombok.Data;
  */
 @Data
 public class UsersDTO {
-    private String uniqueId;
+    private Object uniqueId;
 
-    private String nickName;
+    private Object nickName;
 
-    private String avatar;
+    private Object avatar;
 
-    private Integer gender;
+    private Object gender;
 }

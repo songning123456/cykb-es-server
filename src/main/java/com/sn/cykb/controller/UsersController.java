@@ -30,4 +30,11 @@ public class UsersController {
         CommonDTO<UsersDTO> commonDTO = usersService.getUniUsersInfo(commonVO);
         return commonDTO;
     }
+
+    @PostMapping("/weixin/getUsersInfo")
+    @AControllerAspect(description = "登陆时微信获取用户信息")
+    CommonDTO<UsersDTO> getWxUsersInfos(@RequestBody CommonVO<UsersVO> commonVO) {
+        CommonDTO<UsersDTO> commonDTO = usersService.getWxUsersInfo(commonVO);
+        return commonDTO;
+    }
 }

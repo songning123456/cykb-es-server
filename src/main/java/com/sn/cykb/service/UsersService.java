@@ -13,4 +13,6 @@ import com.sn.cykb.vo.UsersVO;
 public interface UsersService {
 
     CommonDTO<UsersDTO> getUniUsersInfo(CommonVO<UsersVO> commonVO) throws Exception;
+
+    CommonDTO<UsersDTO> getWxUsersInfo(CommonVO<UsersVO> commonVO) throws Exception;
 }
