@@ -83,7 +83,7 @@ public class UsersServiceImpl implements UsersService {
         UsersDTO usersDTO;
         if (!result.isEmpty()) {
             SearchResult.Hit<Object, Void> item = result.get(0);
-            users = Users.builder().avatar(((Map) item.source).get("avatar").toString()).gender((int) (((Map) item.source).get("avatar"))).updateTime(updateTime).uniqueId(uniqueId).nickName(((Map) item.source).get("avatar").toString()).build();
+            users = Users.builder().avatar(((Map) item.source).get("avatar").toString()).gender(((Double)(((Map) item.source).get("gender"))).intValue()).updateTime(updateTime).uniqueId(uniqueId).nickName(((Map) item.source).get("nickName").toString()).build();
             // 判断是否修改过
             if (!avatar.equals(users.getAvatar()) || !nickName.equals(users.getNickName()) || gender != users.getGender()) {
                 JestResult jestResult = elasticSearchDao.update(usersEsSearch, item.id, users);
