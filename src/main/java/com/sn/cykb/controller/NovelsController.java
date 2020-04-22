@@ -43,6 +43,20 @@ public class NovelsController {
         return commonDTO;
     }
 
+    @AControllerAspect(description = "根据category分类统计")
+    @GetMapping("/countByCategory")
+    public CommonDTO<NovelsDTO> countByCategorys() throws Exception {
+        CommonDTO<NovelsDTO> commonDTO = novelsService.countByCategory();
+        return commonDTO;
+    }
+
+    @AControllerAspect(description = "根据category获取结果")
+    @PostMapping("/categoryResult")
+    public CommonDTO<NovelsDTO> categoryResults(@RequestBody CommonVO<NovelsVO> commonVO) throws Exception {
+        CommonDTO<NovelsDTO> commonDTO = novelsService.categoryResult(commonVO);
+        return commonDTO;
+    }
+
     @AControllerAspect(description = "作者也写过")
     @PostMapping("/sameAuthor")
     public CommonDTO<NovelsDTO> sameAuthors(@RequestBody CommonVO<NovelsVO> commonVO) throws Exception {

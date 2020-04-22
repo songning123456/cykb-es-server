@@ -107,6 +107,48 @@ public class NovelsServiceImpl implements NovelsService {
     }
 
     @Override
+    public CommonDTO<NovelsDTO> countByCategory() throws Exception {
+        CommonDTO<NovelsDTO> commonDTO = new CommonDTO<>();
+        ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").build();
+        List<TermsAggregation.Entry> src = elasticSearchDao.aggregationTermQuery(novelsEsSearch, null, "category");
+        List<NovelsDTO> target = new ArrayList<>();
+        src.forEach(val -> {
+            NovelsDTO dto = new NovelsDTO();
+            dto.setCategory(val.getKey());
+            dto.setTotal(val.getCount());
+            target.add(dto);
+        });
+        commonDTO.setData(target);
+        commonDTO.setTotal((long)target.size());
+        return commonDTO;
+    }
+
+    @Override
+    public CommonDTO<NovelsDTO> categoryResult(CommonVO<NovelsVO> commonVO) throws Exception {
+        CommonDTO<NovelsDTO> commonDTO = new CommonDTO<>();
+        Integer recordStartNo = commonVO.getRecordStartNo();
+        int pageRecordNum = commonVO.getPageRecordNum();
+        String category = commonVO.getCondition().getCategory();
+        List<SearchResult.Hit<Object, Void>> src;
+        ElasticSearch novelsEsSearch = ElasticSearch.builder().index("novels_index").type("novels").sort("createTime").order("desc").size(pageRecordNum).build();
+        Map<String, Object> termParams = new HashMap<String, Object>(2) {
+            {
+                put("category", category);
+            }
+        };
+        if (null != recordStartNo) {
+            src = elasticSearchDao.mustTermRangeQuery(novelsEsSearch, termParams, null);
+        } else {
+            Long createTime = commonVO.getCondition().getCreateTime();
+            Range range = Range.builder().rangeName("createTime").ltOrLte("lt").max(createTime).build();
+            src = elasticSearchDao.mustTermRangeQuery(novelsEsSearch, termParams, Collections.singletonList(range));
+        }
+        List<NovelsDTO> target = EsConvertUtil.novelsEntityConvert(src);
+        commonDTO.setData(target);
+        return commonDTO;
+    }
+
+    @Override
     public CommonDTO<NovelsDTO> sameAuthor(CommonVO<NovelsVO> commonVO) throws Exception {
         CommonDTO<NovelsDTO> commonDTO = new CommonDTO<>();
         String author = commonVO.getCondition().getAuthor();
