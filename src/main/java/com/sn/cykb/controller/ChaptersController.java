@@ -34,4 +34,18 @@ public class ChaptersController {
         CommonDTO<ChaptersDTO> commonDTO = chaptersService.readMore(novelsId, chaptersId);
         return commonDTO;
     }
+
+    @AControllerAspect(description = "获取某一章节资源")
+    @GetMapping("/someoneChapter")
+    public CommonDTO<ChaptersDTO> someoneChapters(@RequestParam(value = "chaptersId") String chaptersId) {
+        CommonDTO<ChaptersDTO> commonDTO = chaptersService.someoneChapter(chaptersId);
+        return commonDTO;
+    }
+
+    @AControllerAspect(description = "获取某一小说所有章节资源")
+    @GetMapping("/allChapter")
+    public CommonDTO<ChaptersDTO> allChapters(@RequestParam(value = "novelsId") String novelsId) {
+        CommonDTO<ChaptersDTO> commonDTO = chaptersService.allChapter(novelsId);
+        return commonDTO;
+    }
 }

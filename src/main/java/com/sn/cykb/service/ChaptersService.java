@@ -14,4 +14,8 @@ public interface ChaptersService {
     CommonDTO<ChaptersDTO> firstChapter(String novelsId) throws Exception;
 
     CommonDTO<ChaptersDTO> readMore(String novelsId, String chaptersId) throws Exception;
+
+    CommonDTO<ChaptersDTO> someoneChapter(String chaptersId);
+
+    CommonDTO<ChaptersDTO> allChapter(String novelsId);
 }

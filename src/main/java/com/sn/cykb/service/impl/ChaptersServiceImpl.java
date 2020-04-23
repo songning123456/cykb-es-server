@@ -4,6 +4,7 @@ import com.sn.cykb.dto.ChaptersDTO;
 import com.sn.cykb.dto.CommonDTO;
 import com.sn.cykb.elasticsearch.dao.ElasticSearchDao;
 import com.sn.cykb.elasticsearch.entity.ElasticSearch;
+import com.sn.cykb.feign.FeignClientQuery;
 import com.sn.cykb.service.ChaptersService;
 import com.sn.cykb.util.EsConvertUtil;
 import io.searchbox.core.SearchResult;
@@ -22,6 +23,8 @@ public class ChaptersServiceImpl implements ChaptersService {
 
     @Autowired
     private ElasticSearchDao elasticSearchDao;
+    @Autowired
+    private FeignClientQuery feignClientQuery;
 
     @Override
     public CommonDTO<ChaptersDTO> firstChapter(String novelsId) throws Exception {
@@ -56,6 +59,18 @@ public class ChaptersServiceImpl implements ChaptersService {
             commonDTO.setListExt(listExt);
         }
         commonDTO.setData(Collections.singletonList(chaptersDTO));
+        return commonDTO;
+    }
+
+    @Override
+    public CommonDTO<ChaptersDTO> someoneChapter(String chaptersId) {
+        CommonDTO<ChaptersDTO> commonDTO = feignClientQuery.updateSomeoneChapters(chaptersId);
+        return commonDTO;
+    }
+
+    @Override
+    public CommonDTO<ChaptersDTO> allChapter(String novelsId) {
+        CommonDTO<ChaptersDTO> commonDTO = feignClientQuery.updateAllChapters(novelsId);
         return commonDTO;
     }
 }
