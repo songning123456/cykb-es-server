@@ -83,16 +83,26 @@ public class UsersServiceImpl implements UsersService {
         UsersDTO usersDTO;
         if (!result.isEmpty()) {
             SearchResult.Hit<Object, Void> item = result.get(0);
-            users = Users.builder().avatar(((Map) item.source).get("avatar").toString()).gender(((Double)(((Map) item.source).get("gender"))).intValue()).updateTime(updateTime).uniqueId(uniqueId).nickName(((Map) item.source).get("nickName").toString()).build();
+            users = Users.builder().avatar(((Map) item.source).get("avatar").toString()).gender(((Double) (((Map) item.source).get("gender"))).intValue()).updateTime(updateTime).uniqueId(uniqueId).nickName(((Map) item.source).get("nickName").toString()).build();
             // 判断是否修改过
             if (!avatar.equals(users.getAvatar()) || !nickName.equals(users.getNickName()) || gender != users.getGender()) {
                 JestResult jestResult = elasticSearchDao.update(usersEsSearch, item.id, users);
-                users = jestResult.getSourceAsObject(Users.class);
+                if (jestResult.isSucceeded()) {
+                    String id = jestResult.getJsonObject().get("_id").toString().replace("\"", "");
+                    users = (Users) elasticSearchDao.findById(usersEsSearch, id, Users.class);
+                } else {
+                    throw new Exception("修改用户信息失败");
+                }
             }
         } else {
             users = Users.builder().uniqueId(uniqueId).avatar(avatar).nickName(nickName).gender(gender).updateTime(updateTime).build();
             JestResult jestResult = elasticSearchDao.save(usersEsSearch, users);
-            users = jestResult.getSourceAsObject(Users.class);
+            if (jestResult.isSucceeded()) {
+                String id = jestResult.getJsonObject().get("_id").toString().replace("\"", "");
+                users = (Users) elasticSearchDao.findById(usersEsSearch, id, Users.class);
+            } else {
+                throw new Exception("新增用户信息失败");
+            }
         }
         usersDTO = UsersDTO.builder().avatar(users.getAvatar()).gender(users.getGender()).nickName(users.getNickName()).uniqueId(users.getUniqueId()).build();
         commonDTO.setData(Collections.singletonList(usersDTO));

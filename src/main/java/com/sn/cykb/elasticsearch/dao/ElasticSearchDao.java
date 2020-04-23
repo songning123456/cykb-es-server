@@ -81,6 +81,15 @@ public class ElasticSearchDao {
         return result.getSourceAsObject(Object.class);
     }
 
+    public Object findById(ElasticSearch elasticSearch, String esId, Class clazz) throws Exception {
+        if (StringUtils.isEmpty(esId)) {
+            throw new Exception("elasticSearch-findById 参数异常");
+        }
+        Get get = new Get.Builder(elasticSearch.getIndex(), esId).type(elasticSearch.getType()).build();
+        JestResult result = jestClient.execute(get);
+        return result.getSourceAsObject(clazz);
+    }
+
     public void mustTermsDelete(ElasticSearch elasticSearch, Map<String, String[]> termsParams) throws Exception {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         if (termsParams != null && !termsParams.isEmpty()) {
