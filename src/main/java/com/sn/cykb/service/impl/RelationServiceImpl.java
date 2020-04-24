@@ -32,10 +32,10 @@ public class RelationServiceImpl implements RelationService {
     @Override
     public CommonDTO<NovelsDTO> bookcase(CommonVO<RelationVO> commonVO) throws Exception {
         CommonDTO<NovelsDTO> commonDTO = new CommonDTO<>();
-        String uniqueId = commonVO.getCondition().getUniqueId();
+        String usersId = commonVO.getCondition().getUsersId();
         ElasticSearch relationEsSearch = ElasticSearch.builder().index("relation_index").type("relation").sort("updateTime").order("desc").size(10000).build();
         Map<String, Object> termParams = new HashMap<String, Object>(2) {{
-            put("uniqueId", uniqueId);
+            put("usersId", usersId);
         }};
         List<SearchResult.Hit<Object, Void>> src = elasticSearchDao.mustTermRangeQuery(relationEsSearch, termParams, null);
         if (src.isEmpty()) {
@@ -77,11 +77,11 @@ public class RelationServiceImpl implements RelationService {
     public CommonDTO<RelationDTO> insertBookcase(CommonVO<RelationVO> commonVO) throws Exception {
         CommonDTO<RelationDTO> commonDTO = new CommonDTO<>();
         String novelsId = commonVO.getCondition().getNovelsId();
-        String uniqueId = commonVO.getCondition().getUniqueId();
+        String usersId = commonVO.getCondition().getUsersId();
         ElasticSearch elasticSearch = ElasticSearch.builder().index("relation_index").type("relation").build();
         Map<String, Object> termParams = new HashMap<String, Object>() {
             {
-                put("uniqueId", uniqueId);
+                put("usersId", usersId);
                 put("novelsId", novelsId);
             }
         };
@@ -91,7 +91,7 @@ public class RelationServiceImpl implements RelationService {
             commonDTO.setMessage("书架已存在此书");
             return commonDTO;
         }
-        Relation relation = Relation.builder().novelsId(novelsId).uniqueId(uniqueId).updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
+        Relation relation = Relation.builder().novelsId(novelsId).usersId(usersId).updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
         elasticSearchDao.save(elasticSearch, relation);
         return commonDTO;
     }
@@ -99,12 +99,12 @@ public class RelationServiceImpl implements RelationService {
     @Override
     public CommonDTO<RelationDTO> topBookcase(CommonVO<RelationVO> commonVO) throws Exception {
         CommonDTO<RelationDTO> commonDTO = new CommonDTO<>();
-        String uniqueId = commonVO.getCondition().getUniqueId();
+        String usersId = commonVO.getCondition().getUsersId();
         String novelsId = commonVO.getCondition().getNovelsId();
         ElasticSearch elasticSearch = ElasticSearch.builder().index("relation_index").type("relation").build();
         Map<String, Object> termParams = new HashMap<String, Object>() {
             {
-                put("uniqueId", uniqueId);
+                put("usersId", usersId);
                 put("novelsId", novelsId);
             }
         };
@@ -112,7 +112,7 @@ public class RelationServiceImpl implements RelationService {
         if (!src.isEmpty()) {
             List<RelationDTO> target = EsConvertUtil.relationEntityConvert(src);
             for (RelationDTO item : target) {
-                Relation relation = Relation.builder().novelsId(item.getNovelsId().toString()).uniqueId(item.getUniqueId().toString()).updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
+                Relation relation = Relation.builder().novelsId(item.getNovelsId().toString()).usersId(item.getUsersId().toString()).updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
                 elasticSearchDao.update(elasticSearch, item.getRelationId().toString(), relation);
             }
         }
@@ -122,11 +122,11 @@ public class RelationServiceImpl implements RelationService {
     @Override
     public CommonDTO<RelationDTO> deleteBookcase(CommonVO<RelationVO> commonVO) throws Exception {
         CommonDTO<RelationDTO> commonDTO = new CommonDTO<>();
-        String uniqueId = commonVO.getCondition().getUniqueId();
+        String usersId = commonVO.getCondition().getUsersId();
         List<String> novelsIdList = commonVO.getCondition().getNovelsIdList();
         ElasticSearch elasticSearch = ElasticSearch.builder().index("relation_index").type("relation").build();
         Map<String, String[]> termsParams = new HashMap<String, String[]>() {{
-            put("uniqueId", new String[]{uniqueId});
+            put("usersId", new String[]{usersId});
             put("novelsId", novelsIdList.toArray(new String[novelsIdList.size()]));
         }};
         elasticSearchDao.mustTermsDelete(elasticSearch, termsParams);

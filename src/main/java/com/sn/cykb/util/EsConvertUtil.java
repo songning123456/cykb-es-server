@@ -60,7 +60,7 @@ public class EsConvertUtil {
             dto = new RelationDTO();
             dto.setRelationId(item.id);
             dto.setNovelsId(((Map) item.source).get("novelsId"));
-            dto.setUniqueId(((Map) item.source).get("uniqueId"));
+            dto.setUsersId(((Map) item.source).get("usersId"));
             dto.setUpdateTime(((Map) item.source).get("updateTime"));
             target.add(dto);
         }

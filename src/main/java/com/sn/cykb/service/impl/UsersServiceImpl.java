@@ -46,8 +46,12 @@ public class UsersServiceImpl implements UsersService {
         if (result.isEmpty()) {
             Users users = Users.builder().uniqueId(code).updateTime(DateUtil.dateToStr(new Date(), "yyyy-MM-dd HH:mm:ss")).build();
             JestResult jestResult = elasticSearchDao.save(usersEsSearch, users);
+            usersDTO.setUsersId(((DocumentResult) jestResult).getId());
+            // todo 如果以后有需要,web也把uniqueId修改成usersId
             usersDTO.setUniqueId(((DocumentResult) jestResult).getId());
         } else {
+            usersDTO.setUsersId(result.get(0).id);
+            // todo 如果以后有需要,web也把uniqueId修改成usersId
             usersDTO.setUniqueId(result.get(0).id);
         }
         commonDTO.setData(Collections.singletonList(usersDTO));
@@ -72,6 +76,7 @@ public class UsersServiceImpl implements UsersService {
             commonDTO.setMessage("未获取到微信openId");
             return commonDTO;
         }
+        String usersId = "";
         Map<String, Object> termParams = new HashMap<String, Object>(2) {{
             put("uniqueId", uniqueId);
         }};
@@ -88,8 +93,8 @@ public class UsersServiceImpl implements UsersService {
             if (!avatar.equals(users.getAvatar()) || !nickName.equals(users.getNickName()) || gender != users.getGender()) {
                 JestResult jestResult = elasticSearchDao.update(usersEsSearch, item.id, users);
                 if (jestResult.isSucceeded()) {
-                    String id = jestResult.getJsonObject().get("_id").toString().replace("\"", "");
-                    users = (Users) elasticSearchDao.findById(usersEsSearch, id, Users.class);
+                    usersId = jestResult.getJsonObject().get("_id").toString().replace("\"", "");
+                    users = (Users) elasticSearchDao.findById(usersEsSearch, usersId, Users.class);
                 } else {
                     throw new Exception("修改用户信息失败");
                 }
@@ -98,13 +103,13 @@ public class UsersServiceImpl implements UsersService {
             users = Users.builder().uniqueId(uniqueId).avatar(avatar).nickName(nickName).gender(gender).updateTime(updateTime).build();
             JestResult jestResult = elasticSearchDao.save(usersEsSearch, users);
             if (jestResult.isSucceeded()) {
-                String id = jestResult.getJsonObject().get("_id").toString().replace("\"", "");
-                users = (Users) elasticSearchDao.findById(usersEsSearch, id, Users.class);
+                usersId = jestResult.getJsonObject().get("_id").toString().replace("\"", "");
+                users = (Users) elasticSearchDao.findById(usersEsSearch, usersId, Users.class);
             } else {
                 throw new Exception("新增用户信息失败");
             }
         }
-        usersDTO = UsersDTO.builder().avatar(users.getAvatar()).gender(users.getGender()).nickName(users.getNickName()).uniqueId(users.getUniqueId()).build();
+        usersDTO = UsersDTO.builder().usersId(usersId).avatar(users.getAvatar()).gender(users.getGender()).nickName(users.getNickName()).uniqueId(users.getUniqueId()).build();
         commonDTO.setData(Collections.singletonList(usersDTO));
         return commonDTO;
     }

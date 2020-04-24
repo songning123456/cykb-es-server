@@ -12,7 +12,7 @@ import lombok.*;
 @Data
 public class Relation {
 
-    private String uniqueId;
+    private String usersId;
 
     private String novelsId;
 

@@ -27,5 +27,5 @@ public class RelationDTO {
 
     private Object relationId;
 
-    private Object uniqueId;
+    private Object usersId;
 }

@@ -12,6 +12,8 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Data
 public class UsersDTO {
+    private Object usersId;
+
     private Object uniqueId;
 
     private Object nickName;
