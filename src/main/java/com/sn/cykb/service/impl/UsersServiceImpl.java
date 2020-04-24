@@ -87,6 +87,7 @@ public class UsersServiceImpl implements UsersService {
         Users users;
         UsersDTO usersDTO;
         if (!result.isEmpty()) {
+            usersId = result.get(0).id;
             SearchResult.Hit<Object, Void> item = result.get(0);
             users = Users.builder().avatar(((Map) item.source).get("avatar").toString()).gender(((Double) (((Map) item.source).get("gender"))).intValue()).updateTime(updateTime).uniqueId(uniqueId).nickName(((Map) item.source).get("nickName").toString()).build();
             // 判断是否修改过
