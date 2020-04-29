@@ -27,8 +27,6 @@ import java.util.Map;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class CykbEsServerApplicationTests {
 
-    @Value("${server.port}")
-    private int serverPort;
     @Value("${spring.mvc.servlet.path}")
     private String path;
     @Autowired
@@ -36,7 +34,7 @@ public class CykbEsServerApplicationTests {
 
     @Test
     public void getAllUrl() throws Exception {
-        String ipPort = "192.168.0.109:" + serverPort;
+        String ipPort = "192.168.0.109:8020";
         RequestMappingHandlerMapping mapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
         // 获取url与类和方法的对应信息
         Map<RequestMappingInfo, HandlerMethod> map = mapping.getHandlerMethods();
