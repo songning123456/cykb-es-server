@@ -86,7 +86,13 @@ public class HttpUtil {
         HttpPost httpPost = new HttpPost(url);
         try {
             //把传入进来的结构树封装
-            httpPost.setEntity(new StringEntity(param, "utf-8"));
+            if (param != null) {
+                //解决中文乱码问题
+                StringEntity entity = new StringEntity(param, "utf-8");
+                entity.setContentEncoding("UTF-8");
+                entity.setContentType("application/json");
+                httpPost.setEntity(entity);
+            }
             //执行一个post请求
             HttpResponse response = httpClient.execute(httpPost);
             //从响应获取数据
