@@ -11,6 +11,13 @@ spring:
       connection-timeout: 30000
       multi-threaded: true
       read-timeout: 7200
+  application:
+    name: cykbEsServer
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://192.168.0.109:7082/eureka/
 
 logging:
   level:
